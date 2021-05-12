@@ -16,7 +16,7 @@
                             #:host-dir [host-dir (build-path workspace-dir
                                                              (platform+vm->path
                                                               (host-platform)
-                                                              (default-vm)))]
+                                                              vm))]
                             #:source-dir [source-dir (build-path workspace-dir
                                                                  (platform+vm->path
                                                                   (source-platform)

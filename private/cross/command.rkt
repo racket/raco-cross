@@ -85,7 +85,8 @@
    (define done-file (build-path done-dir "setup-done"))
    (unless (file-exists? done-file)
      (setup-distribution #:workspace workspace
-                         #:platform target)
+                         #:platform target
+                         #:vm vm)
      (make-directory* done-dir)
      (call-with-output-file* done-file #:exists 'truncate void)))
 
