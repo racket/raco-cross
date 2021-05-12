@@ -77,7 +77,7 @@ The @exec{raco cross} command takes care of the following tasks:
        mirror for release distributions, but you can point @exec{raco
        cross} to other sites (such as one of the snapshot sites at
        @url{https://snapshots.racket-lang.org}) using
-       @DFLag{installers}.}
+       @DFlag{installers}.}
 
  @item{Configures the minimal Racket installation to install new
        packages in @exec{installation} scope by default.}
