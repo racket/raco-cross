@@ -44,9 +44,9 @@
                                             variant))]))]
  [("--native") "install target platform as native to this host"
                (set! native? #t)]
- [("--work-dir") dir
-                 "use <dir> to hold distributions; defaults to user-specific addon space"
-                 (set! workspace-dir dir)]
+ [("--workspace") dir
+                  "use <dir> to hold distributions; defaults to user-specific addon space"
+                  (set! workspace-dir dir)]
  [("--installers") url
                    "download distribution from <url>"
                    (set! installers-url url)]

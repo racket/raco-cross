@@ -15,7 +15,7 @@ executables that run on platforms other than the one used to create
 the executable.
 
 For example,
-
+<
 @commandline{raco cross --target x86_64-linux exe example.rkt}
 
 creates an executable named @filepath{example} that runs on x86_64
@@ -208,7 +208,7 @@ The following @nonterm{options} are recognized:
        Beware that only some combinations of platform and Racket
        implementation are available from installer sites.}
 
- @item{@DFlag{work-dir} @nonterm{dir} --- Uses @nonterm{dir} as the
+ @item{@DFlag{workspace} @nonterm{dir} --- Uses @nonterm{dir} as the
        workspace directory.
 
        The default workspace directory depends on the target version
