@@ -2,7 +2,8 @@
 (require racket/system
          "platform.rkt"
          "default.rkt"
-         "host-racket.rkt")
+         "host-racket.rkt"
+         "native.rkt")
 
 (provide run-cross-racket
          run-cross-racket*)
@@ -40,17 +41,22 @@
                            #:source-dir source-dir
                            #:vm vm
                            args)
-  (define racket (find-host-racket host-dir))
-  (define zo-dir (path->complete-path (build-path target-dir "build" "zo")))
+  (cond
+    [(file-exists? (build-path target-dir "build" as-native-file))
+     (define racket (find-host-racket target-dir))
+     (apply system* racket args)]
+    [else
+     (define racket (find-host-racket host-dir))
+     (define zo-dir (path->complete-path (build-path target-dir "build" "zo")))
 
-  (apply system* racket
-         (append
-          (if (eq? vm 'cs)
-              (list "--cross-compiler"
-                    machine (build-path source-dir "lib")
-                    "-MCR" (bytes-append (path->bytes zo-dir) #":"))
-              (list "-C"))
-          (list
-           "-G" (build-path target-dir "etc")
-           "-X" (build-path target-dir "collects"))
-          args)))
+     (apply system* racket
+            (append
+             (if (eq? vm 'cs)
+                 (list "--cross-compiler"
+                       machine (build-path source-dir "lib")
+                       "-MCR" (bytes-append (path->bytes zo-dir) #":"))
+                 (list "-C"))
+             (list
+              "-G" (build-path target-dir "etc")
+              "-X" (build-path target-dir "collects"))
+             args))]))

@@ -142,6 +142,9 @@
                (when load?
                  (load dest)))))
 
+         ;; compiling in unsafe mode:
+         (optimize-level 3)
+
          ,@(let ()
              (define (compile-one s
                                   #:dest [dest (path-replace-suffix s #".so")]

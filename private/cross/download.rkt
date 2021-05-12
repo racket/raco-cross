@@ -2,8 +2,10 @@
 (require racket/file
          net/url
          file/untgz
+         version/utils
          "platform.rkt"
-         "default.rkt")
+         "default.rkt"
+         "native.rkt")
 
 (provide download-distribution)
 
@@ -30,6 +32,8 @@
                                #:version [vers (default-version)]
                                #:installers-url [installers (default-installers-url vers)]
                                #:base-name [base-name "racket-minimal"]
+                               #:filename [given-filename #f]
+                               #:native? [native? #f]
                                #:zo-dir [zo-dir #f])
   (define platform+vm (platform+vm->path platform vm))
   (define dest-dir (build-path workspace-dir platform+vm))
@@ -37,18 +41,38 @@
     (define tmp-dir (build-path workspace-dir "tmp"))
     (delete-directory/files tmp-dir #:must-exist? #f)
     (make-directory tmp-dir)
-    
+
+    (define filename (or given-filename
+                         (string-append base-name "-" vers "-"
+                                        (if (and (eq? vm 'bc)
+                                                 (version<? vers "8.0"))
+                                            platform
+                                            (platform+vm->path platform vm))
+                                        ".tgz")))
+
     (define url (combine-url/relative (if (string? installers)
                                           (string->url installers)
                                           installers)
-                                      (string-append base-name
-                                                     "-"
-                                                     vers
-                                                     "-"
-                                                     platform+vm
-                                                     ".tgz")))
+                                      filename))
     (printf ">> Downloading and unpacking\n ~a\n" (url->string url))
-    (define i (get-pure-port url #:redirections 5))
+    (define i
+      (case (url-scheme url)
+        [("file")
+         (open-input-file (url->path url))]
+        [else
+         (define-values (i headers) (get-pure-port/headers url
+                                                           #:redirections 5
+                                                           #:status? #t))
+         (define status (string->number (substring headers 9 12)))
+         (case status
+           [(200) (void)]
+           [(404 410) (close-input-port i)
+                      (raise-user-error "error: installer not found")]
+           [else (define msg (read-string 4096 i))
+                 (close-input-port i)
+                 (raise-user-error "error on download" msg)])
+         i]))
+
     (untgz i #:dest tmp-dir)
     (close-input-port i)
 
@@ -72,6 +96,12 @@
               (when (and (file-exists? dep-f)
                          (file-exists? (build-path one-dir dep-f)))
                 (copy-file dep-f (build-path one-dir dep-f) #t)))))))
+
+    (when native?
+      (define dir (build-path one-dir "build"))
+      (make-directory* dir)
+      (define p (build-path dir as-native-file))
+      (call-with-output-file* p #:exists 'truncate void))
 
     (rename-file-or-directory one-dir dest-dir)
     (delete-directory tmp-dir)))
