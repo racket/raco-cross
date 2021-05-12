@@ -23,18 +23,16 @@ Linux. That is, it sets up a combination of distributions for the
 current platform and for the @tt{x86_64-linux} platform, and it runs
 @|raco-exe| as if from the local @tt{x86_64-linux} installation.
 
-For that command to work, however, the @filepath{compiler-lib} package
-must be installed in the @exec{raco cross} workspace for the
-@tt{x86_64-linux} target. It's not there by default, because
-@exec{raco cross} starts with a minimal Racket distribution, and
-@|raco-exe| is provided by @filepath{compiler-lib}. So, @emph{before}
-the above command, use this one:
+@margin-note{For Racket CS, cross-building executables works for
+             version 8.1.0.6 and later. For Racket BC, cross-build
+             executables works for 6.0 and later. The specific
+             platforms available as cross-compilation targets depends
+             on the set of distributions that are available from an
+             installer site.}
 
-@commandline{raco cross --target x86_64-linux pkg install compiler-lib}
-
-The @filepath{example} executable generated above is not necessarily
+The generated @filepath{example} executable is not necessarily
 portable by itself to other machines. As is generally the case with
-@|raco-exe|, the executable need to be turned into a distribution with
+@|raco-exe|, the executable needs to be turned into a distribution with
 @|raco-dist| (which is also supplied by the @filepath{compiler-lib}
 package):
 
@@ -51,8 +49,8 @@ example,
 @commandline{raco cross --version 7.8 racket}
 
 installs and runs a minimal installation of Racket version 7.8 for the
-current platform (assuming that the combination of version and
-platform is available).
+current platform (assuming that the combination of version, platform,
+and virtual machine is available).
 
 Use the @DFlag{native} flag to create an installation for a platform
 other than the current machine's default, but where the current
@@ -61,7 +59,8 @@ machine can run executables directly. For example, on Windows where
 
 @commandline{raco cross --native --platform i383-win32 --vm bc racket}
 
-installs and runs a 32-bit build of Racket for Windows.
+installs and runs a 32-bit build of Racket BC for Windows and runs it
+directly.
 
 @; ----------------------------------------
 @section{Platforms, Versions, and Workspaces for @exec{raco cross}}
@@ -77,10 +76,15 @@ The @exec{raco cross} command takes care of the following tasks:
        By default, @exec{raco cross} downloads from the main Racket
        mirror for release distributions, but you can point @exec{raco
        cross} to other sites (such as one of the snapshot sites at
-       @url{https://snapshots.racket-lang.org}).}
+       @url{https://snapshots.racket-lang.org}) using
+       @DFLag{installers}.}
 
  @item{Configures the minimal Racket installation to install new
        packages in @exec{installation} scope by default.}
+
+ @item{Installs the @filepath{compiler-lib} package so that @exec{raco
+       exe} is available, unless @DFlag{skip-pkg} is specified to keep
+       the installation minimal.}
 
  @item{Generates a cross-compiler plug-in from Racket sources for the
        CS variant of Racket. (No extra cross-compilation plugin is
@@ -228,6 +232,15 @@ The following @nonterm{options} are recognized:
 
   @item{@DFlag{archive} @nonterm{filename} --- Overrides the archive
         to use when downloading for the target platform.}
+
+  @item{@DFlag{skip-pkgs} --- Disables installation of the
+        @filepath{compiler-lib} package when installing a new
+        distribution.
+
+        The @filepath{compiler-lib} package is installed by default so
+        that @exec{raco cross @elem{....} exe @elem{...}} and
+        @exec{raco cross @elem{....} dist @elem{...}} will work for
+        the installed target.}
 
   @item{@DFlag{remove} --- Removes any existing installation in the
         workspace for the target platform, virtual machine, and

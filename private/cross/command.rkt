@@ -18,6 +18,7 @@
 (define base-name "racket-minimal")
 (define target (host-platform))
 (define native? #f)
+(define skip-pkgs? #f)
 (define remove? #f)
 
 (command-line
@@ -51,6 +52,8 @@
  [("--archive") name
                 "download distribution as <name> (normally ends \".tgz\")"
                 (set! download-filename name)]
+ [("--skip-pkgs") "skip installing the \"compiler-lib\" package"
+                  (set! skip-pkgs? #t)]
  [("--remove") "remove installation instead of running commands"
                (set! remove? #t)]
  #:args ([command #f] . arg)
@@ -144,6 +147,9 @@
                               #:vm vm))
         (run #:platform platform
              '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
+        (unless skip-pkgs?
+          (run #:platform platform
+               '("-l-" "raco" "pkg" "install" "--auto" "compiler-lib")))
         (make-directory* done-dir)
         (call-with-output-file* done-file #:exists 'truncate void)))
 
