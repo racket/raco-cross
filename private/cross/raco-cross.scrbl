@@ -83,7 +83,7 @@ The @exec{raco cross} command takes care of the following tasks:
        packages in @exec{installation} scope by default.}
 
  @item{Installs the @filepath{compiler-lib} package so that @exec{raco
-       exe} is available, unless @DFlag{skip-pkg} is specified to keep
+       exe} is available, unless @DFlag{skip-pkgs} is specified to keep
        the installation minimal.}
 
  @item{Generates a cross-compiler plug-in from Racket sources for the
@@ -241,6 +241,16 @@ The following @nonterm{options} are recognized:
         that @exec{raco cross @elem{....} exe @elem{...}} and
         @exec{raco cross @elem{....} dist @elem{...}} will work for
         the installed target.}
+
+  @item{@DFlag{skip-setup} --- Skips the @exec{raco setup} step of
+        some distribution installations.
+
+        Beware that skipping @exec{raco setup} may produce an
+        installation that runs slowly by loading from
+        machine-independent compiled files, but @DFlag{skip-setup} may
+        be useful for working around bugs in old distributions. Also,
+        @DFlag{skip-setup} usually should be paired with
+        @DFlag{skip-pkgs}.}
 
   @item{@Flag{j} @nonterm{n} or @DFlag{jobs} @nonterm{n} --- Uses
         @nonterm{n} parallel jobs for setup actions when installing a

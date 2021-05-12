@@ -18,6 +18,7 @@
 (define base-name "racket-minimal")
 (define target (host-platform))
 (define native? #f)
+(define skip-setup? #f)
 (define skip-pkgs? #f)
 (define jobs #f)
 (define remove? #f)
@@ -53,6 +54,8 @@
  [("--archive") name
                 "download distribution as <name> (normally ends \".tgz\")"
                 (set! download-filename name)]
+ [("--skip-setup") "skip the `raco setup` step of an installation"
+                  (set! skip-setup? #t)]
  [("--skip-pkgs") "skip installing the \"compiler-lib\" package"
                   (set! skip-pkgs? #t)]
  [("-j" "--jobs") n
@@ -149,7 +152,8 @@
           (setup-distribution #:workspace workspace
                               #:platform platform
                               #:vm vm
-                              #:jobs jobs))
+                              #:jobs jobs
+                              #:skip-setup? skip-setup?))
         (run #:platform platform
              '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
         (unless skip-pkgs?

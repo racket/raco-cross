@@ -22,6 +22,7 @@
                                                                   (source-platform)
                                                                   #f))]
                             #:force? [force? #f]
+                            #:skip-setup? [skip-setup? #f]
                             #:jobs [jobs #f])
   (define platform+vm (platform+vm->path platform vm))
   (define target-dir (build-path workspace-dir platform+vm))
@@ -33,20 +34,21 @@
                      #:host-racket-dir host-dir
                      #:machine machine))
 
-  (printf ">> Setting up for ~a\n" platform+vm)
+  (unless skip-setup?
+    (printf ">> Setting up for ~a\n" platform+vm)
 
-  (unless (run-cross-racket* #:target-dir target-dir
-                             #:machine machine
-                             #:host-dir host-dir
-                             #:source-dir source-dir
-                             #:vm vm
-                             (append
-                              '("-l-"
-                                "raco"
-                                "setup"
-                                "-D"
-                                "-x"
-                                "--no-pkg-deps")
-                              (if jobs (list "-j" jobs) null)))
-    (unless force?
-      (error 'setup-distribution "setup failed"))))
+    (unless (run-cross-racket* #:target-dir target-dir
+                               #:machine machine
+                               #:host-dir host-dir
+                               #:source-dir source-dir
+                               #:vm vm
+                               (append
+                                '("-l-"
+                                  "raco"
+                                  "setup"
+                                  "-D"
+                                  "-x"
+                                  "--no-pkg-deps")
+                                (if jobs (list "-j" jobs) null)))
+      (unless force?
+        (error 'setup-distribution "setup failed")))))
