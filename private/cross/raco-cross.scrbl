@@ -25,7 +25,7 @@ current platform and for the @tt{x86_64-linux} platform, and it runs
 
 @margin-note{For Racket CS, cross-building executables works for
              version 8.1.0.6 and later. For Racket BC, cross-build
-             executables works for 6.0 and later. The specific
+             executables works for 7.0 and later. The specific
              platforms available as cross-compilation targets depends
              on the set of distributions that are available from an
              installer site.}
@@ -241,6 +241,11 @@ The following @nonterm{options} are recognized:
         that @exec{raco cross @elem{....} exe @elem{...}} and
         @exec{raco cross @elem{....} dist @elem{...}} will work for
         the installed target.}
+
+  @item{@Flag{j} @nonterm{n} or @DFlag{jobs} @nonterm{n} --- Uses
+        @nonterm{n} parallel jobs for setup actions when installing a
+        new distribution, including the initial package install if
+        @DFlag{skip-pkgs} is not specified.}
 
   @item{@DFlag{remove} --- Removes any existing installation in the
         workspace for the target platform, virtual machine, and

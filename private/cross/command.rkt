@@ -19,6 +19,7 @@
 (define target (host-platform))
 (define native? #f)
 (define skip-pkgs? #f)
+(define jobs #f)
 (define remove? #f)
 
 (command-line
@@ -54,6 +55,9 @@
                 (set! download-filename name)]
  [("--skip-pkgs") "skip installing the \"compiler-lib\" package"
                   (set! skip-pkgs? #t)]
+ [("-j" "--jobs") n
+                  "use <n> parallel jobs for setup actions"
+                  (set! jobs n)]
  [("--remove") "remove installation instead of running commands"
                (set! remove? #t)]
  #:args ([command #f] . arg)
@@ -144,17 +148,20 @@
         (unless native?
           (setup-distribution #:workspace workspace
                               #:platform platform
-                              #:vm vm))
+                              #:vm vm
+                              #:jobs jobs))
         (run #:platform platform
              '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
         (unless skip-pkgs?
           (run #:platform platform
-               '("-l-" "raco" "pkg" "install" "--auto" "compiler-lib")))
+               (append '("-l-" "raco" "pkg" "install" "--auto" "--skip-installed")
+                       (if jobs (list "-j" jobs) null)
+                       '("compiler-lib"))))
         (make-directory* done-dir)
         (call-with-output-file* done-file #:exists 'truncate void)))
 
     ;; Prepare distribution for this platform, if needed:
-    (unless native?
+    (unless target-will-be-native?
       (download-and-setup #:platform (host-platform)
                           #:native? #t))
 

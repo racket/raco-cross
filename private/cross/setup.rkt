@@ -21,7 +21,8 @@
                                                                  (platform+vm->path
                                                                   (source-platform)
                                                                   #f))]
-                            #:force? [force? #f])
+                            #:force? [force? #f]
+                            #:jobs [jobs #f])
   (define platform+vm (platform+vm->path platform vm))
   (define target-dir (build-path workspace-dir platform+vm))
 
@@ -39,11 +40,13 @@
                              #:host-dir host-dir
                              #:source-dir source-dir
                              #:vm vm
-                             '("-l-"
-                               "raco"
-                               "setup"
-                               "-D"
-                               "-x"
-                               "--no-pkg-deps"))
+                             (append
+                              '("-l-"
+                                "raco"
+                                "setup"
+                                "-D"
+                                "-x"
+                                "--no-pkg-deps")
+                              (if jobs (list "-j" jobs) null)))
     (unless force?
       (error 'setup-distribution "setup failed"))))
