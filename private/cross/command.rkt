@@ -77,7 +77,8 @@
  ;; Get and set up target platform:
  (unless (equal? target (host-platform))
    (download #:platform target
-             #:zo-dir (build-path workspace (platform+vm->path (source-platform) #f)))
+             #:zo-dir (and (eq? vm 'cs)
+                           (build-path workspace (platform+vm->path (source-platform) #f))))
    (define done-dir (build-path workspace
                                 (platform+vm->path target vm)
                                 "build"))

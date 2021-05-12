@@ -47,10 +47,10 @@
          (append
           (if (eq? vm 'cs)
               (list "--cross-compiler"
-                    machine (build-path source-dir "lib"))
-              null)
+                    machine (build-path source-dir "lib")
+                    "-MCR" (bytes-append (path->bytes zo-dir) #":"))
+              (list "-C"))
           (list
-           "-MCR" (bytes-append (path->bytes zo-dir) #":")
            "-G" (build-path target-dir "etc")
            "-X" (build-path target-dir "collects"))
           args)))
