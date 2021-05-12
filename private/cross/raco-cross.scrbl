@@ -112,6 +112,9 @@ which is analogous to running
 but with a cross-compilation mode selected by the @nonterm{option}s.
 As a special case, @nonterm{command} can be @exec{racket}, which is
 analogous to running just @exec{racket} instead of @exec{raco racket}.
+Finally, you can omit the @nonterm{command} and @nonterm{arg}s,
+in which case @exec{raco cross} just downloads and prepares the
+workspace's distribution for the target platform.
 
 The following @nonterm{options} are recognized:
 
