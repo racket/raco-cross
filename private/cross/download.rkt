@@ -34,6 +34,7 @@
                                #:base-name [base-name "racket-minimal"]
                                #:filename [given-filename #f]
                                #:native? [native? #f]
+                               #:host [host #f]
                                #:zo-dir [zo-dir #f])
   (define platform+vm (platform+vm->path platform vm))
   (define dest-dir (build-path workspace-dir platform+vm))
@@ -97,11 +98,17 @@
                          (file-exists? (build-path one-dir dep-f)))
                 (copy-file dep-f (build-path one-dir dep-f) #t)))))))
 
-    (when native?
-      (define dir (build-path one-dir "build"))
-      (make-directory* dir)
-      (define p (build-path dir as-native-file))
-      (call-with-output-file* p #:exists 'truncate void))
+    (define build-dir (build-path one-dir "build"))
+    (make-directory* build-dir)
+    (cond
+      [native?
+       (define p (build-path build-dir as-native-file))
+       (call-with-output-file* p #:exists 'truncate void)]
+      [host
+       (define p (build-path build-dir host-file))
+       (call-with-output-file* p #:exists 'truncate
+                               (lambda (o)
+                                 (write host o)))])
 
     (rename-file-or-directory one-dir dest-dir)
     (delete-directory tmp-dir)))

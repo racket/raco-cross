@@ -15,7 +15,7 @@ executables that run on platforms other than the one used to create
 the executable.
 
 For example,
-<
+
 @commandline{raco cross --target x86_64-linux exe example.rkt}
 
 creates an executable named @filepath{example} that runs on x86_64
@@ -125,6 +125,20 @@ machine, as well as
 @;
 to install for the @nonterm{target} platform.
 
+Cross-compilation support depends on having suitable distributions for
+both the host platform and the target platform. Some operating systems
+support more than one platform at a time, and it may be necessary to
+select a specific host platform to work with a particular target
+platform. For example, Mac OS on Apple Silicon can run both
+@tt{aarch64-macosx} and @tt{x86_64-macosx} natively, and distribution
+bundles for Racket BC tend to be available only for
+@tt{x86_64-macosx}, so @exec{--target x86_64-win32 --vm bc} may
+require @exec{--host x86_64-macosx}. The @DFlag{host} for a
+combination of target platform, virtual machine, and version is
+recorded when the target distribution is installed, so @DFlag{host} is
+needed only the first time. If the host distribution is already
+installed, it must be installed as a native distribution.
+
 @; ----------------------------------------
 @section{Running @exec{raco cross}}
 
@@ -173,9 +187,21 @@ The following @nonterm{options} are recognized:
 
                 Examples: @exec{ti3nt}, @exec{tarm64osx}, @exec{ppc32le}}
 
-        ]}
+        ]
 
- @item{@DFlag{vm} @nonterm{variant} --- Selects the Racket version to
+       The default target platform is the host platform.}
+
+ @item{@DFlag{host} @nonterm{platform} --- Selects the platform to run
+       natively as needed for cross-compiling to the target platform.
+
+       The default host platform is inferred from the Racket
+       implementation that is used to run @exec{raco cross}. The host
+       setting for a target platform is recorded when the distribution
+       for the target platform, version, and virtual machine is
+       installed into the workspace, so it needs to use specified only
+       the first time the target is selected.}
+
+ @item{@DFlag{version} @nonterm{vers} --- Selects the Racket version to
        use for the target machine.
 
        The default version is based on the Racket version used to run
@@ -192,13 +218,13 @@ The following @nonterm{options} are recognized:
        not needed.
 
        Native mode is inferred when the target platform is the same as
-       the platform for @exec{raco}. Otherwise, the @DFlag{native}
-       setting is recorded when the distribution for the target
-       platform, version, and virtual machine is installed into the
-       workspace, so it needs to use specified only the first time the
-       target is selected.}
+       the target platform. Otherwise, the @DFlag{native} setting is
+       recorded when the distribution for the target platform,
+       version, and virtual machine is installed into the workspace,
+       so it needs to be specified only the first time the target is
+       selected.}
 
- @item{@DFlag{version} @nonterm{vers} --- Selects the Racket
+ @item{@DFlag{vm} @nonterm{variant} --- Selects the Racket
        virtual-machine implementation to use for the target machine,
        either @exec{cs} or @exec{bc}.
 

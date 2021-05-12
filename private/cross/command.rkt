@@ -16,7 +16,8 @@
 (define download-filename #f)
 (define vm (default-vm))
 (define base-name "racket-minimal")
-(define target (host-platform))
+(define host #f)
+(define target #f)
 (define native? #f)
 (define skip-setup? #f)
 (define skip-pkgs? #f)
@@ -31,6 +32,11 @@
                (set! target (normalize-platform
                              platform
                              #:complain-as (short-program+command-name)))]
+ [("--host") platform
+             "use native <platform> for host"
+             (set! host (normalize-platform
+                         platform
+                         #:complain-as (short-program+command-name)))]
  [("--version") vers
                 "use Racket distributions with version number <vers>"
                 (set! version vers)]
@@ -77,18 +83,39 @@
                        (build-path (find-system-path 'addon-dir)
                                    "raco-cross"
                                    version)))
+
+ ;; Infer host and target from each other
+ (unless host
+   (set! host (or (and target
+                       (selected-host #:workspace workspace
+                                      #:platform target
+                                      #:vm vm))
+                  (default-host-platform))))
+ (unless target
+   (set! target host))
+ (unless (will-be-native? #:workspace workspace
+                          #:platform host
+                          #:host-platform #f
+                          #:vm vm
+                          #:install-native? #t)
+   (raise-user-error (string-append
+                      (short-program+command-name)
+                      ": would-be host platform is installed as non-native: "
+                      host)))
+
  (define installers (or installers-url
                         (default-installers-url version)))
  (define target-will-be-native?
    (will-be-native? #:workspace workspace
                     #:platform target
+                    #:host-platform host
                     #:vm vm
                     #:install-native? native?))
  (printf ">> Cross configuration\n")
  (printf " Target:    ~a~a\n" target (if target-will-be-native?
                                          " [native]"
                                          ""))
- (printf " Host:      ~a\n" (host-platform))
+ (printf " Host:      ~a\n" host)
  (printf " Version:   ~a\n" version)
  (printf " VM:        ~a\n" vm)
  (printf " Workspace: ~a\n" workspace)
@@ -107,13 +134,15 @@
                           #:base-name base-name
                           #:filename filename
                           #:native? native?
+                          #:host host
                           #:zo-dir zo-dir))
  (define (run args #:platform platform)
    (apply run-cross-racket
           #:workspace workspace
           #:platform platform
+          #:host-platform host
           #:vm vm
-          #:host-dir (build-path workspace (platform+vm->path (host-platform) vm))
+          #:host-dir (build-path workspace (platform+vm->path host vm))
           #:on-fail (lambda ()
                       (raise-user-error (string-append
                                          (short-program+command-name)
@@ -129,7 +158,7 @@
    [else
     ;; Get source as needed for cross compiler
     (when (and (eq? vm 'cs)
-               (not (equal? target (host-platform)))
+               (not (equal? target host))
                (not native?))
       (download #:platform (source-platform)
                 #:vm #f))
@@ -151,6 +180,7 @@
         (unless native?
           (setup-distribution #:workspace workspace
                               #:platform platform
+                              #:host-platform host
                               #:vm vm
                               #:jobs jobs
                               #:skip-setup? skip-setup?))
@@ -166,14 +196,14 @@
 
     ;; Prepare distribution for this platform, if needed:
     (unless target-will-be-native?
-      (download-and-setup #:platform (host-platform)
+      (download-and-setup #:platform host
                           #:native? #t))
 
     ;; Prepare distirbution for target platform:
     (download-and-setup #:platform target
                         #:filename download-filename
                         #:native? (or native?
-                                      (equal? target (host-platform))))
+                                      (equal? target host)))
 
     (when command
       (run #:platform target

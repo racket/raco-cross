@@ -10,10 +10,11 @@
 
 (define (run-cross-racket #:workspace workspace-dir
                           #:platform platform ; arch+OS
+                          #:host-platform [host-platform (default-host-platform)]
                           #:vm [vm (default-vm)]
                           #:host-dir [host-dir (build-path workspace-dir
                                                            (platform+vm->path
-                                                            (host-platform)
+                                                            host-platform
                                                             vm))]
                           #:source-dir [source-dir (build-path workspace-dir
                                                                (platform+vm->path

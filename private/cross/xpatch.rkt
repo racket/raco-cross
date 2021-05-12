@@ -13,7 +13,8 @@
 
 (define (generate-xpatch #:src-dir src-dir
                          #:host-racket-dir host-dir
-                         #:machine machine)
+                         #:machine machine
+                         #:host-machine host-machine)
   (define tmp-xpatch.mach
     (build-path src-dir "lib" (format "tmp-xpatch.~a" machine)))
   (define compile-xpatch.mach
@@ -223,7 +224,7 @@
     ;; ----------------------------------------
 
     (define host-suffix (string->bytes/utf-8
-                         (string-append "." (platform->machine (host-platform)))))
+                         (string-append "." host-machine)))
 
     (define (make-library-script src deps)
       (call-with-output-file*

@@ -1,12 +1,12 @@
 #lang racket/base
 
-(provide host-platform
+(provide default-host-platform
          source-platform
          platform+vm->path
          platform->machine
          normalize-platform)
 
-(define (host-platform)
+(define (default-host-platform)
   (define s (path->string (system-library-subpath #f)))
   (case s
     [("win32\\x86_64") "x86_64-win32"]

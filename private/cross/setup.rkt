@@ -12,10 +12,11 @@
 
 (define (setup-distribution #:workspace workspace-dir
                             #:platform platform ; arch+OS
+                            #:host-platform [host-platform (default-host-platform)]
                             #:vm [vm (default-vm)]
                             #:host-dir [host-dir (build-path workspace-dir
                                                              (platform+vm->path
-                                                              (host-platform)
+                                                              host-platform
                                                               vm))]
                             #:source-dir [source-dir (build-path workspace-dir
                                                                  (platform+vm->path
@@ -32,7 +33,8 @@
   (when (eq? vm 'cs)
     (generate-xpatch #:src-dir source-dir
                      #:host-racket-dir host-dir
-                     #:machine machine))
+                     #:machine machine
+                     #:host-machine (platform->machine host-platform)))
 
   (unless skip-setup?
     (printf ">> Setting up for ~a\n" platform+vm)
