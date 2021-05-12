@@ -76,7 +76,7 @@
                   #t)]
       [else
        (call-with-input-file*
-        (build-path dir "s" "unix.def")
+        (build-path dir "s" "tunix.def")
         (lambda (i)
           (call-with-output-file*
            (build-path dir "s" "machine.def")

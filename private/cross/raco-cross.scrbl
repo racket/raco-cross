@@ -59,7 +59,7 @@ other than the current machine's default, but where the current
 machine can run executables directly. For example, on Windows where
 @exec{raco} runs a 64-bit Racket build,
 
-@commandline{raco cross --native --platform i383-win32 racket}
+@commandline{raco cross --native --platform i383-win32 --vm bc racket}
 
 installs and runs a 32-bit build of Racket for Windows.
 
