@@ -23,9 +23,6 @@
                (set! target (normalize-platform
                              platform
                              #:complain-as (short-program+command-name)))]
- [("--work-dir") dir
-                 "use <dir> to hold distributions; defaults to user-specific addon space"
-                 (set! workspace-dir dir)]
  [("--version") vers
                 "use Racket distributions with version number <vers>"
                 (set! version vers)]
@@ -38,6 +35,9 @@
                              (short-program+command-name)
                              "unrecognized variant: "
                              variant)]))]
+ [("--work-dir") dir
+                 "use <dir> to hold distributions; defaults to user-specific addon space"
+                 (set! workspace-dir dir)]
  [("--installers") url
                    "download installers from <url>"
                    (set! installers-url url)]

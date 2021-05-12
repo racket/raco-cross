@@ -10,7 +10,7 @@
     [else 'bc]))
 
 (define (default-version)
-  (car (regexp-match #rx"^[0-9]+.[0-9]+" (version))))
+  (car (regexp-match #rx"^[0-9]+.[0-9]+(?:.[1-9][0-0]*)?" (version))))
 
 (define (default-installers-url vers)
   (format "https://mirror.racket-lang.org/installers/~a/" vers))
