@@ -28,7 +28,7 @@
                                #:platform platform ; either arch+OS or "src" or "src-builtpkgs"
                                #:vm [vm (default-vm)] ; use #f for source
                                #:version [vers (default-version)]
-                               #:installers [installers (format "https://mirror.racket-lang.org/installers/~a/" vers)]
+                               #:installers-url [installers (default-installers-url vers)]
                                #:base-name [base-name "racket-minimal"]
                                #:zo-dir [zo-dir #f])
   (define platform+vm (platform+vm->path platform vm))
@@ -47,7 +47,7 @@
                                                      "-"
                                                      platform+vm
                                                      ".tgz")))
-    (printf "Downloading and unpacking ~a\n" (url->string url))
+    (printf ">> Downloading and unpacking\n ~a\n" (url->string url))
     (define i (get-pure-port url #:redirections 5))
     (untgz i #:dest tmp-dir)
     (close-input-port i)

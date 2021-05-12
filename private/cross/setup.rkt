@@ -27,16 +27,18 @@
 
   (define machine (platform->machine platform))
 
-  (generate-xpatch #:src-dir source-dir
-                   #:host-racket-dir host-dir
-                   #:machine machine)
+  (when (eq? vm 'cs)
+    (generate-xpatch #:src-dir source-dir
+                     #:host-racket-dir host-dir
+                     #:machine machine))
 
-  (printf "Setting up for ~a\n" platform+vm)
+  (printf ">> Setting up for ~a\n" platform+vm)
 
   (unless (run-cross-racket* #:target-dir target-dir
                              #:machine machine
                              #:host-dir host-dir
                              #:source-dir source-dir
+                             #:vm vm
                              '("-l-"
                                "raco"
                                "setup"

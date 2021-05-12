@@ -24,7 +24,7 @@
   (unless (and (file-exists? compile-xpatch.mach)
                (file-exists? library-xpatch.mach))
 
-    (printf "Generating cross compiler for ~a\n" machine)
+    (printf ">> Generating cross compiler for ~a\n" machine)
 
     ;; Compile Scheme source by (ab)using the `--cross-serve` mode of
     ;; a `racket` executable to get a Chez Scheme instance that is not

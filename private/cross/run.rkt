@@ -13,7 +13,7 @@
                           #:host-dir [host-dir (build-path workspace-dir
                                                            (platform+vm->path
                                                             (host-platform)
-                                                            (default-vm)))]
+                                                            vm))]
                           #:source-dir [source-dir (build-path workspace-dir
                                                                (platform+vm->path
                                                                 (source-platform)
@@ -30,6 +30,7 @@
                              #:machine machine
                              #:host-dir host-dir
                              #:source-dir source-dir
+                             #:vm vm
                              args)
     (on-fail)))
 
@@ -37,14 +38,19 @@
                            #:machine machine
                            #:host-dir host-dir
                            #:source-dir source-dir
+                           #:vm vm
                            args)
   (define racket (find-host-racket host-dir))
   (define zo-dir (path->complete-path (build-path target-dir "build" "zo")))
 
   (apply system* racket
-         "--cross-compiler"
-         machine (build-path source-dir "lib")
-         "-MCR" (bytes-append (path->bytes zo-dir) #":")
-         "-G" (build-path target-dir "etc")
-         "-X" (build-path target-dir "collects")
-         args))
+         (append
+          (if (eq? vm 'cs)
+              (list "--cross-compiler"
+                    machine (build-path source-dir "lib"))
+              null)
+          (list
+           "-MCR" (bytes-append (path->bytes zo-dir) #":")
+           "-G" (build-path target-dir "etc")
+           "-X" (build-path target-dir "collects"))
+          args)))
