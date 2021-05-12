@@ -7,7 +7,7 @@
                          "drive commands for cross compilation"
                          #f)))
 
-(define scribblings '(("private/cross/cross.scrbl"
+(define scribblings '(("private/cross/raco-cross.scrbl"
                        ()
                        (tool))))
 
