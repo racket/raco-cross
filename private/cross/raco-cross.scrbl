@@ -76,8 +76,8 @@ The @exec{raco cross} command takes care of the following tasks:
        By default, @exec{raco cross} downloads from the main Racket
        mirror for release distributions, but you can point @exec{raco
        cross} to other sites (such as one of the snapshot sites at
-       @url{https://snapshot.racket-lang.org}) using
-       @DFlag{installers}.}
+       @url{https://snapshot.racket-lang.org} that includes
+       @filepath{.tgz} options) using @DFlag{installers}.}
 
  @item{Configures the minimal Racket installation to install new
        packages in @exec{installation} scope by default.}
@@ -291,3 +291,51 @@ The following @nonterm{options} are recognized:
         given.}
 
 ]
+
+@; ----------------------------------------
+@section{Snapshots and @exec{raco cross}}
+
+By default, @exec{raco cross} uses a @DFlag{version} argument to
+locate a suitable distribution from the main Racket download mirror.
+You can specify an alternative download site with @DFlag{installers},
+but at snapshots sites, the Racket version number changes both too
+quickly too be a convenient designation of the build and too slowly to
+reliably distinguish the build.
+
+Snapshot sites normally have a main page that provides links with
+``current'' instead of the version number, and they also have
+build-specific pages (with a hash code and/or date in the URL) to
+provide the same links. The build-specific pages persist for a a few
+days or weeks, depending on the snapshot site, while the main page
+turns over more quickly.
+
+The best way to work with snapshots in @exec{raco cross} is to give
+each one its own workspace, instead of using the default workspace.
+That way, you can use @exec{current} as the version, and you can
+adjust @DFlag{installers} and @DFlag{workspace} together as suits your
+purpose.
+
+For example, to run the last Racket from the Utah snapshot, you could
+write
+
+@verbatim[#:indent 2]{
+ raco cross \
+  --installers https://www.cs.utah.edu/plt/snapshots/current/installers/ \
+  --version current \
+  --workspace /tmp/todays-snapshot \
+  racket
+}
+
+The Utah snapshot updates daily, so tomorrow, throw away
+@filepath{/tmp/todays-snapshot} and start again. If, instead, you need
+to work with a snapshot build for a few days, locate the snapshot ID
+at the bottom of the main snapshot page, and use that in a more
+persistent workspace:
+
+@verbatim[#:indent 2]{
+ raco cross \
+  --installers https://www.cs.utah.edu/plt/snapshots/20210512-8b4b6cf/installers/ \
+  --version current \
+  --workspace /home/mflatt/snapshots/20210512-8b4b6cf \
+  racket
+}
