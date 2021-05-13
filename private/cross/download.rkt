@@ -1,5 +1,6 @@
 #lang racket/base
-(require racket/file
+(require racket/list
+         racket/file
          net/url
          file/untgz
          version/utils
@@ -51,9 +52,10 @@
                                             (platform+vm->path platform vm))
                                         ".tgz")))
 
-    (define url (combine-url/relative (if (string? installers)
-                                          (string->url installers)
-                                          installers)
+    (define url (combine-url/relative (url->directory-url
+                                       (if (string? installers)
+                                           (string->url installers)
+                                           installers))
                                       filename))
     (printf ">> Downloading and unpacking\n ~a\n" (url->string url))
     (define i
@@ -112,3 +114,19 @@
 
     (rename-file-or-directory one-dir dest-dir)
     (delete-directory tmp-dir)))
+
+;; ----------------------------------------
+
+(define (url->directory-url u)
+  (case (url-scheme u)
+    [("file")
+     (path->url (path->directory-path (url->path u)))]
+    [else
+     (define p (url-path u))
+     (cond
+       [(or (empty? p)
+            (string=? "" (path/param-path (last p))))
+        u]
+       [else
+        (struct-copy url u
+                     [path (append p (list (path/param "" null)))])])]))

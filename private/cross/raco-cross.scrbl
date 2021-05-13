@@ -242,9 +242,9 @@ The following @nonterm{options} are recognized:
        'addon-dir) "raco-cross" @#,nonterm{vers})].}
 
   @item{@DFlag{installers} @nonterm{url} --- Specifies the site for
-        downloading minimal Racket distributions. Note that @nonterm{url}
-        normally should end with @litchar{/}, since the distribution file
-        name will be combined as relative reference.
+        downloading minimal Racket distributions. A @filepath{.tgz}
+        file name is added to the end of @nonterm{url} for
+        downloading.
 
         The installers URL is needed only when a combination of a
         target platform, virtual-machine implementation, and version
