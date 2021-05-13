@@ -55,7 +55,10 @@
              (if (eq? vm 'cs)
                  (list "--cross-compiler"
                        machine (build-path source-dir "lib")
-                       "-MCR" (bytes-append (path->bytes zo-dir) #":"))
+                       "-MCR" (bytes-append (path->bytes zo-dir)
+                                            (if (eq? 'windows (system-type))
+                                                #";"
+                                                #":")))
                  (list "-C"))
              (list
               "-G" (build-path target-dir "etc")
