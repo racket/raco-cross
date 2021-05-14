@@ -47,6 +47,7 @@
     (define filename (or given-filename
                          (string-append base-name "-" vers "-"
                                         (if (and (eq? vm 'bc)
+                                                 (valid-version? vers)
                                                  (version<? vers "8.0"))
                                             platform
                                             (platform+vm->path platform vm))
