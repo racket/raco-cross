@@ -82,6 +82,10 @@ The @exec{raco cross} command takes care of the following tasks:
  @item{Configures the minimal Racket installation to install new
        packages in @exec{installation} scope by default.}
 
+ @item{Configures the minimal Racket installation to compile to
+       machine-independent form if @DFlag{compile-any} is specified or
+       @exec{any} is used as the target platform.}
+
  @item{Installs the @filepath{compiler-lib} package so that @exec{raco
        exe} is available, unless @DFlag{skip-pkgs} is specified to keep
        the installation minimal.}
@@ -155,7 +159,9 @@ As a special case, @nonterm{command} can be @exec{racket}, which is
 analogous to running just @exec{racket} instead of @exec{raco racket}.
 Finally, you can omit the @nonterm{command} and @nonterm{arg}s,
 in which case @exec{raco cross} just downloads and prepares the
-workspace's distribution for the target platform.
+workspace's distribution for the target configuration. A target
+configuration is a combination of platform, version, virtual machine,
+and whether compiling to machine-independent form.
 
 The following @nonterm{options} are recognized:
 
@@ -187,17 +193,23 @@ The following @nonterm{options} are recognized:
 
                 Examples: @exec{ti3nt}, @exec{tarm64osx}, @exec{ppc32le}}
 
+          @item{The string @exec{any}, which is equivalent to the host platform
+                by also specifying @DFlag{compile-any}.}
+
         ]
 
        The default target platform is the host platform.}
 
  @item{@DFlag{host} @nonterm{platform} --- Selects the platform to run
        natively as needed for cross-compiling to the target platform.
+       The possible values for @nonterm{platform} are the same as for
+       @DFlag{target}, except that @exec{any} is not allowed as a
+       host.
 
        The default host platform is inferred from the Racket
        implementation that is used to run @exec{raco cross}. The host
        setting for a target platform is recorded when the distribution
-       for the target platform, version, and virtual machine is
+       for the target configuration is
        installed into the workspace, so it needs to use specified only
        the first time the target is selected.}
 
@@ -219,8 +231,8 @@ The following @nonterm{options} are recognized:
 
        Native mode is inferred when the target platform is the same as
        the target platform. Otherwise, the @DFlag{native} setting is
-       recorded when the distribution for the target platform,
-       version, and virtual machine is installed into the workspace,
+       recorded when the distribution for the target configuration
+       is installed into the workspace,
        so it needs to be specified only the first time the target is
        selected.}
 
@@ -234,6 +246,14 @@ The following @nonterm{options} are recognized:
        Beware that only some combinations of platform and Racket
        implementation are available from installer sites.}
 
+ @item{@DFlag{compile-any} or @Flag{M} --- Selects a configuration of
+       the target platform that compiles bytecode to
+       machine-independent form. When @exec{any} is used as a target,
+       @DFlag{compile-any} is redundant but harmless.
+
+       A @DFlag{compile-any} configuration is most useful for using
+       @exec{raco make} to create machine-independent bytecode.}
+
  @item{@DFlag{workspace} @nonterm{dir} --- Uses @nonterm{dir} as the
        workspace directory.
 
@@ -246,8 +266,7 @@ The following @nonterm{options} are recognized:
         file name is added to the end of @nonterm{url} for
         downloading.
 
-        The installers URL is needed only when a combination of a
-        target platform, virtual-machine implementation, and version
+        The installers URL is needed only when a target configuration
         is specified for the first time for a given workspace. The
         name of the file to download is constructed based on the
         version, target machine, and virtual-machine implementation,

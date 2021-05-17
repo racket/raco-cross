@@ -16,10 +16,13 @@
 (define (source-platform)
   "src-builtpkgs")
 
-(define (platform+vm->path platform vm)
+(define (platform+vm->path platform vm #:compile-any? [compile-any? #f])
   (string-append platform
                  (if vm
                      (string-append "-" (symbol->string vm))
+                     "")
+                 (if compile-any?
+                     "-mi"
                      "")))
 
 ;; Used both to convert to Chez-style machine names

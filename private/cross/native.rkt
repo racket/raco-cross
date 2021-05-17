@@ -24,8 +24,10 @@
                          #:platform platform
                          #:host-platform [host-platform (default-host-platform)]
                          #:vm vm
+                         #:compile-any? compile-any?
                          #:install-native? install-native?)
   (cond
+    [compile-any? #f]
     [(equal? platform host-platform) #t]
     [else
      (define dir (build-path workspace (platform+vm->path platform vm)))

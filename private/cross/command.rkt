@@ -23,15 +23,20 @@
 (define skip-pkgs? #f)
 (define jobs #f)
 (define remove? #f)
+(define compile-any? #f)
 
 (command-line
  #:program (short-program+command-name)
  #:once-each
  [("--target") platform
                "cross-build for <platform>"
-               (set! target (normalize-platform
-                             platform
-                             #:complain-as (short-program+command-name)))]
+               (cond
+                 [(equal? platform "any")
+                  (set! compile-any? #t)]
+                 [else
+                  (set! target (normalize-platform
+                                platform
+                                #:complain-as (short-program+command-name)))])]
  [("--host") platform
              "use native <platform> for host"
              (set! host (normalize-platform
@@ -49,6 +54,8 @@
                              (string-append (short-program+command-name)
                                             ": unrecognized variant: "
                                             variant))]))]
+ [("--compile-any" "-M") "cross-build to machine-independent compilation"
+                         (set! compile-any? #t)]
  [("--native") "install target platform as native to this host"
                (set! native? #t)]
  [("--workspace") dir
@@ -97,6 +104,7 @@
                           #:platform host
                           #:host-platform #f
                           #:vm vm
+                          #:compile-any? #f
                           #:install-native? #t)
    (raise-user-error (string-append
                       (short-program+command-name)
@@ -110,11 +118,13 @@
                     #:platform target
                     #:host-platform host
                     #:vm vm
+                    #:compile-any? compile-any?
                     #:install-native? native?))
  (printf ">> Cross configuration\n")
- (printf " Target:    ~a~a\n" target (if target-will-be-native?
-                                         " [native]"
-                                         ""))
+ (printf " Target:    ~a~a\n" target (cond
+                                       [target-will-be-native? " [native]"]
+                                       [compile-any? " [machine-independent]"]
+                                       [else ""]))
  (printf " Host:      ~a\n" host)
  (printf " Version:   ~a\n" version)
  (printf " VM:        ~a\n" vm)
@@ -123,12 +133,14 @@
 
  (define (download #:platform platform
                    #:vm [vm vm]
+                   #:compile-any? [compile-any? #f]
                    #:native? [native? #f]
                    #:zo-dir [zo-dir #f]
                    #:filename [filename #f])
    (download-distribution #:workspace workspace
                           #:platform platform
                           #:vm vm
+                          #:compile-any? compile-any?
                           #:version version
                           #:installers-url installers
                           #:base-name base-name
@@ -136,12 +148,15 @@
                           #:native? native?
                           #:host host
                           #:zo-dir zo-dir))
- (define (run args #:platform platform)
+ (define (run args
+              #:platform platform
+              #:compile-any? compile-any?)
    (apply run-cross-racket
           #:workspace workspace
           #:platform platform
           #:host-platform host
           #:vm vm
+          #:compile-any? compile-any?
           #:host-dir (build-path workspace (platform+vm->path host vm))
           #:on-fail (lambda ()
                       (raise-user-error (string-append
@@ -154,26 +169,31 @@
     (remove-distribution #:workspace workspace
                          #:platform target
                          #:vm vm
+                         #:compile-any? compile-any?
                          #:version version)]
    [else
-    ;; Get source as needed for cross compiler
+    ;; Get source as needed for cross compiler or
+    ;; to get initial machine-independent ".zo"s
     (when (and (eq? vm 'cs)
-               (not (equal? target host))
+               (not (and (equal? target host)
+                         (not compile-any?)))
                (not native?))
       (download #:platform (source-platform)
                 #:vm #f))
 
     (define (download-and-setup #:platform platform
                                 #:native? native?
+                                #:compile-any? [compile-any? #f]
                                 #:filename [filename #f])
       (download #:platform platform
                 #:native? native?
                 #:filename filename
+                #:compile-any? compile-any?
                 #:zo-dir (and (not native?)
-                              (eq? vm 'cs)
+                              (or (eq? vm 'cs) compile-any?)
                               (build-path workspace (platform+vm->path (source-platform) #f))))
       (define done-dir (build-path workspace
-                                   (platform+vm->path platform vm)
+                                   (platform+vm->path platform vm #:compile-any? compile-any?)
                                    "build"))
       (define done-file (build-path done-dir "setup-done"))
       (unless (file-exists? done-file)
@@ -182,12 +202,15 @@
                               #:platform platform
                               #:host-platform host
                               #:vm vm
+                              #:compile-any? compile-any?
                               #:jobs jobs
                               #:skip-setup? skip-setup?))
         (run #:platform platform
+             #:compile-any? compile-any?
              '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
         (unless skip-pkgs?
           (run #:platform platform
+               #:compile-any? compile-any?
                (append '("-l-" "raco" "pkg" "install" "--auto" "--skip-installed")
                        (if jobs (list "-j" jobs) null)
                        '("compiler-lib"))))
@@ -199,14 +222,15 @@
       (download-and-setup #:platform host
                           #:native? #t))
 
-    ;; Prepare distirbution for target platform:
+    ;; Prepare distribution for target platform:
     (download-and-setup #:platform target
+                        #:compile-any? compile-any?
                         #:filename download-filename
-                        #:native? (or native?
-                                      (equal? target host)))
+                        #:native? target-will-be-native?)
 
     (when command
       (run #:platform target
+           #:compile-any? compile-any?
            (if (equal? command "racket")
                arg
                (list* "-l-" "raco" command arg))))]))

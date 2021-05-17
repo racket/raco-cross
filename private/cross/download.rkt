@@ -30,6 +30,7 @@
 (define (download-distribution #:workspace workspace-dir
                                #:platform platform ; either arch+OS or "src" or "src-builtpkgs"
                                #:vm [vm (default-vm)] ; use #f for source
+                               #:compile-any? [compile-any? #f]
                                #:version [vers (default-version)]
                                #:installers-url [installers (default-installers-url vers)]
                                #:base-name [base-name "racket-minimal"]
@@ -37,7 +38,7 @@
                                #:native? [native? #f]
                                #:host [host #f]
                                #:zo-dir [zo-dir #f])
-  (define platform+vm (platform+vm->path platform vm))
+  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
   (define dest-dir (build-path workspace-dir platform+vm))
   (unless (directory-exists? dest-dir)
     (define tmp-dir (build-path workspace-dir "tmp"))
@@ -100,6 +101,14 @@
               (when (and (file-exists? dep-f)
                          (file-exists? (build-path one-dir dep-f)))
                 (copy-file dep-f (build-path one-dir dep-f) #t)))))))
+
+    (when compile-any?
+      (define system.rktd (build-path one-dir "lib" "system.rktd"))
+      (define sys (call-with-input-file* system.rktd read))
+      (call-with-output-file*
+       system.rktd
+       #:exists 'truncate
+       (lambda (o) (writeln (hash-set sys 'target-machine #f) o))))
 
     (define build-dir (build-path one-dir "build"))
     (make-directory* build-dir)

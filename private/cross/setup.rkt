@@ -14,6 +14,7 @@
                             #:platform platform ; arch+OS
                             #:host-platform [host-platform (default-host-platform)]
                             #:vm [vm (default-vm)]
+                            #:compile-any? [compile-any? #f]
                             #:host-dir [host-dir (build-path workspace-dir
                                                              (platform+vm->path
                                                               host-platform
@@ -25,12 +26,13 @@
                             #:force? [force? #f]
                             #:skip-setup? [skip-setup? #f]
                             #:jobs [jobs #f])
-  (define platform+vm (platform+vm->path platform vm))
+  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
   (define target-dir (build-path workspace-dir platform+vm))
 
-  (define machine (platform->machine platform))
+  (define machine (and (not compile-any?) (platform->machine platform)))
 
-  (when (eq? vm 'cs)
+  (when (and (eq? vm 'cs)
+             machine)
     (generate-xpatch #:src-dir source-dir
                      #:host-racket-dir host-dir
                      #:machine machine

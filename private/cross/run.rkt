@@ -12,6 +12,7 @@
                           #:platform platform ; arch+OS
                           #:host-platform [host-platform (default-host-platform)]
                           #:vm [vm (default-vm)]
+                          #:compile-any? [compile-any? #f]
                           #:host-dir [host-dir (build-path workspace-dir
                                                            (platform+vm->path
                                                             host-platform
@@ -23,10 +24,10 @@
                           #:on-fail [on-fail (lambda ()
                                                (error "command failed"))]
                           . args)
-  (define platform+vm (platform+vm->path platform vm))
+  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
   (define target-dir (build-path workspace-dir platform+vm))
 
-  (define machine (platform->machine platform))
+  (define machine (and (not compile-any?) (platform->machine platform)))
 
   (unless (run-cross-racket* #:target-dir target-dir
                              #:machine machine
@@ -37,7 +38,7 @@
     (on-fail)))
 
 (define (run-cross-racket* #:target-dir target-dir
-                           #:machine machine
+                           #:machine machine ; #f => compile-any
                            #:host-dir host-dir
                            #:source-dir source-dir
                            #:vm vm
@@ -52,10 +53,12 @@
 
      (apply system* racket
             (append
-             (if (eq? vm 'cs)
+             (if (and (eq? vm 'cs) machine)
                  (list "--cross-compiler"
-                       machine (build-path source-dir "lib")
-                       "-MCR" (bytes-append (path->bytes zo-dir)
+                       machine (build-path source-dir "lib"))
+                 null)
+             (if (or (eq? vm 'cs) (not machine))
+                 (list "-MCR" (bytes-append (path->bytes zo-dir)
                                             (if (eq? 'windows (system-type))
                                                 #";"
                                                 #":")))

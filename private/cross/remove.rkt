@@ -8,16 +8,18 @@
 (define (remove-distribution #:workspace workspace-dir
                              #:platform platform
                              #:vm [vm (default-vm)]
+                             #:compile-any? [compile-any? #f]
                              #:version [vers (default-version)])
-  (define platform+vm (platform+vm->path platform vm))
+  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
   (define dest-dir (build-path workspace-dir platform+vm))
 
   (define (xpatch-file mode)
     (build-path workspace-dir
                 (platform+vm->path (source-platform) #f)
                 "lib"
-                (format "~a-xpatch.~a" mode (platform->machine platform))))
- 
+                (format "~a-xpatch.~a" mode (if compile-any?
+                                                "any"
+                                                (platform->machine platform)))))
 
   (printf ">> Removing ~a\n" platform+vm)
   (unless (or (directory-exists? dest-dir)
