@@ -60,7 +60,7 @@
                (set! native? #t)]
  [("--workspace") dir
                   "use <dir> to hold distributions; defaults to user-specific addon space"
-                  (set! workspace-dir dir)]
+                  (set! workspace-dir (path->complete-path dir))]
  [("--installers") url
                    "download distribution from <url>"
                    (set! installers-url url)]
