@@ -8,13 +8,14 @@
          "remove.rkt"
          "download.rkt"
          "setup.rkt"
-         "run.rkt")
+         "run.rkt"
+         "browse.rkt")
 
 (define version (default-version))
 (define workspace-dir #f) ; default is derived from version
 (define installers-url #f) ; default is derived from version
 (define download-filename #f)
-(define vm (default-vm))
+(define vm #f)
 (define base-name "racket-minimal")
 (define host #f)
 (define target #f)
@@ -22,8 +23,9 @@
 (define skip-setup? #f)
 (define skip-pkgs? #f)
 (define jobs #f)
-(define remove? #f)
 (define compile-any? #f)
+(define remove? #f)
+(define browse? #f)
 
 (command-line
  #:program (short-program+command-name)
@@ -74,22 +76,40 @@
  [("-j" "--jobs") n
                   "use <n> parallel jobs for setup actions"
                   (set! jobs n)]
+ #:once-any
  [("--remove") "remove installation instead of running commands"
                (set! remove? #t)]
+ [("--browse") "show platforms available from installers site"
+               (set! browse? #t)]
  #:args ([command #f] . arg)
 
- (when (and remove? command)
+ (when (and (or remove? browse?)
+            command)
    (raise-user-error (string-append
                       (short-program+command-name)
                       ": "
-                      (format "~a\n  given command: ~a"
-                              "cannot supply a command after `--remove`"
+                      (format (string-append
+                               "cannot supply a command after `--~a`\n"
+                               "  given command: ~a")
+                              (if remove? "remove" "browse")
                               command))))
+
+ (define installers (or installers-url
+                        (default-installers-url version)))
+
+ (when browse?
+   (browse-available-platforms installers
+                               version
+                               vm) ; #f for `vm` => report all VMs
+   (exit 0))
 
  (define workspace (or workspace-dir
                        (build-path (find-system-path 'addon-dir)
                                    "raco-cross"
                                    version)))
+
+ (unless vm
+   (set! vm (default-vm)))
 
  ;; Infer host and target from each other
  (unless host
@@ -111,8 +131,6 @@
                       ": would-be host platform is installed as non-native: "
                       host)))
 
- (define installers (or installers-url
-                        (default-installers-url version)))
  (define target-will-be-native?
    (will-be-native? #:workspace workspace
                     #:platform target

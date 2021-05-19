@@ -303,11 +303,20 @@ The following @nonterm{options} are recognized:
         @DFlag{skip-pkgs} is not specified.}
 
   @item{@DFlag{remove} --- Removes any existing installation in the
-        workspace for the target platform, virtual machine, and
-        version.
+        workspace for the target configuration.
 
         When @DFlag{remove} is specified, no @nonterm{command} can be
-        given.}
+        given, and other flags are ignored except as they determine
+        the target configuration.}
+
+  @item{@DFlag{browse} --- Shows available platforms from the
+        installer site.
+
+        When @DFlag{browse} is specified, no @nonterm{command} can be
+        given, and other flags are ignored except as they determine
+        the installers site, version, and virtual machine. If
+        @DFlag{vm} is not specified, then availability is reported
+        for all version machines.}
 
 ]
 

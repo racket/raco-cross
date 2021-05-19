@@ -1,12 +1,12 @@
 #lang racket/base
-(require racket/list
-         racket/file
-         net/url
+(require racket/file
+         net/url-string
          file/untgz
          version/utils
          "platform.rkt"
          "default.rkt"
-         "native.rkt")
+         "native.rkt"
+         "url.rkt")
 
 (provide download-distribution)
 
@@ -54,29 +54,9 @@
                                             (platform+vm->path platform vm))
                                         ".tgz")))
 
-    (define url (combine-url/relative (url->directory-url
-                                       (if (string? installers)
-                                           (string->url installers)
-                                           installers))
-                                      filename))
+    (define url (combine-installers-url installers filename))
     (printf ">> Downloading and unpacking\n ~a\n" (url->string url))
-    (define i
-      (case (url-scheme url)
-        [("file")
-         (open-input-file (url->path url))]
-        [else
-         (define-values (i headers) (get-pure-port/headers url
-                                                           #:redirections 5
-                                                           #:status? #t))
-         (define status (string->number (substring headers 9 12)))
-         (case status
-           [(200) (void)]
-           [(404 410) (close-input-port i)
-                      (raise-user-error "error: installer not found")]
-           [else (define msg (read-string 4096 i))
-                 (close-input-port i)
-                 (raise-user-error "error on download" msg)])
-         i]))
+    (define i (open-installer-url url))
 
     (untgz i #:dest tmp-dir)
     (close-input-port i)
@@ -124,19 +104,3 @@
 
     (rename-file-or-directory one-dir dest-dir)
     (delete-directory tmp-dir)))
-
-;; ----------------------------------------
-
-(define (url->directory-url u)
-  (case (url-scheme u)
-    [("file")
-     (path->url (path->directory-path (url->path u)))]
-    [else
-     (define p (url-path u))
-     (cond
-       [(or (empty? p)
-            (string=? "" (path/param-path (last p))))
-        u]
-       [else
-        (struct-copy url u
-                     [path (append p (list (path/param "" null)))])])]))
