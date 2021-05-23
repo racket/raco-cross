@@ -10,7 +10,9 @@
                                     vm)
   (define table-url (combine-installers-url installers "table.rktd"))
   (printf ">> Downloading installers table from\n ~a\n" (url->string table-url))
-  (define i (open-installer-url table-url))
+  (define i (open-installer-url table-url
+                                #:not-found-k (lambda ()
+                                                (raise-user-error "table of installers not found"))))
 
   (define (bad-table)
     (raise-user-error "unexpected table format"))
@@ -27,7 +29,8 @@
       [(equal? vers "current")
        (define version-url (combine-installers-url installers "version.rktd"))
        (printf ">> Downloading current version\n ~a\n" (url->string version-url))
-       (define i (open-installer-url version-url))
+       (define i (open-installer-url version-url
+                                     #:not-found-k (lambda () (raise-user-error "version not found"))))
        (define (bad-version)
          (raise-user-error "unexpected version format"))
        (define vers (with-handlers ([exn:fail:read? (lambda (exn) (bad-table))])

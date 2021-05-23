@@ -9,6 +9,7 @@
          "download.rkt"
          "setup.rkt"
          "run.rkt"
+         "build.rkt"
          "browse.rkt")
 
 (define version (default-version))
@@ -24,6 +25,9 @@
 (define skip-pkgs? #f)
 (define jobs #f)
 (define compile-any? #f)
+(define use-source? #f)
+(define rev-configure-args '())
+(define quiet? #f)
 (define remove? #f)
 (define browse? #f)
 
@@ -76,6 +80,14 @@
  [("-j" "--jobs") n
                   "use <n> parallel jobs for setup actions"
                   (set! jobs n)]
+ [("--use-source") "compile a host build from source"
+                   (set! use-source? #t)]
+ #:multi
+ [("++configure") arg "add a `configure` argument for use with --use-source"
+                  (set! rev-configure-args (cons arg rev-configure-args))]
+ #:once-each
+ [("-q" "--quiet") "suppress startup host- and target-configuration description"
+                   (set! quiet? #t)]
  #:once-any
  [("--remove") "remove installation instead of running commands"
                (set! remove? #t)]
@@ -138,15 +150,16 @@
                     #:vm vm
                     #:compile-any? compile-any?
                     #:install-native? native?))
- (printf ">> Cross configuration\n")
- (printf " Target:    ~a~a\n" target (cond
-                                       [target-will-be-native? " [native]"]
-                                       [compile-any? " [machine-independent]"]
-                                       [else ""]))
- (printf " Host:      ~a\n" host)
- (printf " Version:   ~a\n" version)
- (printf " VM:        ~a\n" vm)
- (printf " Workspace: ~a\n" workspace)
+ (unless quiet?
+   (printf ">> Cross configuration\n")
+   (printf " Target:    ~a~a\n" target (cond
+                                         [target-will-be-native? " [native]"]
+                                         [compile-any? " [machine-independent]"]
+                                         [else ""]))
+   (printf " Host:      ~a\n" host)
+   (printf " Version:   ~a\n" version)
+   (printf " VM:        ~a\n" vm)
+   (printf " Workspace: ~a\n" workspace))
  (make-directory* workspace)
 
  (define (download #:platform platform
@@ -190,14 +203,25 @@
                          #:compile-any? compile-any?
                          #:version version)]
    [else
+    (define (host-built?) (directory-exists? (build-path workspace (platform+vm->path host vm))))
+
     ;; Get source as needed for cross compiler or
     ;; to get initial machine-independent ".zo"s
-    (when (and (eq? vm 'cs)
-               (not (and (equal? target host)
-                         (not compile-any?)))
-               (not native?))
+    (when (or (and (eq? vm 'cs)
+                   (not (and (equal? target host)
+                             (not compile-any?)))
+                   (not native?))
+              (and use-source?
+                   (not (host-built?))))
       (download #:platform (source-platform)
                 #:vm #f))
+
+    (when (and use-source?
+               (not (host-built?)))
+      (build-host #:workspace workspace
+                  #:platform host
+                  #:vm vm
+                  #:configure (reverse rev-configure-args)))
 
     (define (download-and-setup #:platform platform
                                 #:native? native?

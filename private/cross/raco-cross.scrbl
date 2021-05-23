@@ -130,7 +130,13 @@ machine, as well as
 to install for the @nonterm{target} platform.
 
 Cross-compilation support depends on having suitable distributions for
-both the host platform and the target platform. Some operating systems
+both the host platform and the target platform. Use @DFlag{browse} to
+check which are available. For a Unix-like host platform with
+conventional build tools installed, a host Racket installation can be
+created with @DFlag{use-source} if no platform-specific distribution
+is available.
+
+Some operating systems
 support more than one platform at a time, and it may be necessary to
 select a specific host platform to work with a particular target
 platform. For example, Mac OS on Apple Silicon can run both
@@ -301,6 +307,30 @@ The following @nonterm{options} are recognized:
         @nonterm{n} parallel jobs for setup actions when installing a
         new distribution, including the initial package install if
         @DFlag{skip-pkgs} is not specified.}
+
+  @item{@DFlag{use-source} --- Build a host installation from source.
+
+        When a host installation is not already available for the
+        target version and virtual machine, build it from a Racket
+        source distribution, which requires tools such as a C compiler
+        and GNU @exec{make}. Building from source is currently
+        supported only for Unix-like host platforms. The result of
+        building on the current machine is assumed to produce
+        executables matching the intended host; supply
+        @DPFlag{configure} arguments as necessary to configure the
+        build.}
+
+  @item{@DPFlag{configure} --- Adds an argument to the list of
+        arguments that are passed to the Racket @exec{configure}
+        script when building a host installation from source.
+
+        These flags are used only with @DFlag{use-source}. For
+        information about available @exec{configure} arguments, see
+        @filepath{README} files in a Racket source distribution.}
+
+  @item{@DFlag{quiet} or @Flag{q} --- Suppresses a description of the
+        selected host and target configurations that would otherwise
+        print as @exec{raco cross} starts.}
 
   @item{@DFlag{remove} --- Removes any existing installation in the
         workspace for the target configuration.
