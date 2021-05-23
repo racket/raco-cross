@@ -15,7 +15,7 @@ executables that run on platforms other than the one used to create
 the executable.
 
 For example,
-
+<
 @commandline{raco cross --target x86_64-linux exe example.rkt}
 
 creates an executable named @filepath{example} that runs on x86_64
@@ -130,12 +130,8 @@ machine, as well as
 to install for the @nonterm{target} platform.
 
 Cross-compilation support depends on having suitable distributions for
-both the host platform and the target platform. Use @DFlag{browse} to
-check which are available. For a Unix-like host platform with
-conventional build tools installed, a host Racket installation can be
-created with @DFlag{use-source} if no platform-specific distribution
-is available.
-
+both the host platform and the target platform. (Use @DFlag{browse} to
+check which are available, and see also @secref["build-your-own"].)
 Some operating systems
 support more than one platform at a time, and it may be necessary to
 select a specific host platform to work with a particular target
@@ -397,3 +393,43 @@ persistent workspace:
   --workspace /home/mflatt/snapshots/20210512-8b4b6cf \
   racket
 }
+
+@; ----------------------------------------
+@section[#:tag "build-your-own"]{Dealing with Missing Installers}
+
+If the download site does not include an installer for your host
+platform, and if it's a Unix-like host platform with conventional
+build tools installed, then a host Racket installation can be created
+with @DFlag{use-source}.
+
+For target platforms, @exec{raco cross} does not directly support
+building form source. To build your own:
+
+@itemlist[
+
+ @item{Start with a minimal Racket source distribution for the desired
+       target version. For best results, use a ``source plus built
+       packages'' distribution.}
+
+ @item{Follow the build instructions in the source distribution to
+       create an @emph{in-place} installation. The steps will be
+       something like @exec{configure}, @exec{make}, and @exec{make
+       install}. Be sure to configure with suitable flags like
+       @DFlag{enable-bcdefault} or @DFlag{enable-csdefault}, depending
+       on the default configuration for that version and your desired
+       target virtual machine.}
+
+ @item{Create a @filepath{.tgz} (gzipped tar) archive that contains
+       your in-place installation. All of the archive content should
+       be within a single directory; that directory should contain
+       @filepath{collects}, for example. The name of the directory
+       within the @filepath{.tgz} archive does not matter. The
+       @filepath{src} directory (including any intermediate build
+       artifacts) can be omitted from the archive.}
+
+ @item{When running @exec{raco cross}, supply @DFlag{installers} with
+       a @litchar{file://} URL (encoding a complete path) to the directory
+       containing the @filepath{.tgz} file, and supply @DFlag{archive}
+       with the name of the @filepath{.tgz} file in that directory.}
+
+]
