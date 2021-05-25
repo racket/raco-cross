@@ -59,12 +59,13 @@
     (printf ">> Downloading and unpacking\n ~a\n" (url->string url))
     (define i (open-installer-url url
                                   #:not-found-k
-                                  (raise-user-error
-                                   (string-append "error: installer not found"
-                                                  (if (and native?
-                                                           (can-build-platform?))
-                                                      "\n consider using `--use-source` to build from source"
-                                                      "")))))
+                                  (lambda ()
+                                    (raise-user-error
+                                     (string-append "error: installer not found"
+                                                    (if (and native?
+                                                             (can-build-platform?))
+                                                        "\n consider using `--use-source` to build from source"
+                                                        ""))))))
 
     (untgz i #:dest tmp-dir)
     (close-input-port i)
