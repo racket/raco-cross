@@ -15,7 +15,7 @@ executables that run on platforms other than the one used to create
 the executable.
 
 For example,
-<
+
 @commandline{raco cross --target x86_64-linux exe example.rkt}
 
 creates an executable named @filepath{example} that runs on x86_64
