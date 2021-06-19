@@ -1,4 +1,4 @@
-# Scribble
+# raco cross
 
 This the source for the Racket packages "raco-cross", "raco-cross-doc", and "raco-cross-lib".
 
