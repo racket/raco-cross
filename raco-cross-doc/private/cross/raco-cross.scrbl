@@ -232,7 +232,7 @@ The following @nonterm{options} are recognized:
        not needed.
 
        Native mode is inferred when the target platform is the same as
-       the target platform. Otherwise, the @DFlag{native} setting is
+       the host platform. Otherwise, the @DFlag{native} setting is
        recorded when the distribution for the target configuration
        is installed into the workspace,
        so it needs to be specified only the first time the target is
