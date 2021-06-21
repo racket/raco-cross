@@ -250,6 +250,12 @@
         (run #:platform platform
              #:compile-any? compile-any?
              '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
+        (run #:platform platform
+             #:compile-any? compile-any?
+             `("-l-" "raco" "pkg" "config" "-i" "--set" "name" ,(format "~a-~a-~a"
+                                                                        version
+                                                                        platform
+                                                                        vm)))
         (unless skip-pkgs?
           (run #:platform platform
                #:compile-any? compile-any?

@@ -82,6 +82,10 @@ The @exec{raco cross} command takes care of the following tasks:
  @item{Configures the minimal Racket installation to install new
        packages in @exec{installation} scope by default.}
 
+ @item{Configures the minimal Racket installation's name to a
+       combination of the version, platform name, and virtual machine
+       (instead of just the version).}
+
  @item{Configures the minimal Racket installation to compile to
        machine-independent form if @DFlag{compile-any} is specified or
        @exec{any} is used as the target platform.}
@@ -330,6 +334,12 @@ The following @nonterm{options} are recognized:
 
   @item{@DFlag{remove} --- Removes any existing installation in the
         workspace for the target configuration.
+
+        Beware that any directory in the user's ``addon'' space that
+        is specific to the installation (initially configured as a
+        combination of the version, platform, and virtual machine) is
+        @emph{not} removed. The location of that directory is
+        typically within @racket[(find-system-path 'addon-dir)].
 
         When @DFlag{remove} is specified, no @nonterm{command} can be
         given, and other flags are ignored except as they determine
