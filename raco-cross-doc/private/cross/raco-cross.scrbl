@@ -279,7 +279,7 @@ The following @nonterm{options} are recognized:
         and that file name is added to the end of @nonterm{url}, but
         the file name can be overridden through @DFlag{archive}.
 
-        The default @nonterm{url} is @exec{https://mirror.racket-lang.org/installers/@nonterm{vers}/}.}
+        The default @nonterm{url} is @exec{https://download.racket-lang.org/installers/@nonterm{vers}/}.}
 
   @item{@DFlag{archive} @nonterm{filename} --- Overrides the archive
         to use when downloading for the target platform.}
