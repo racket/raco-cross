@@ -111,8 +111,9 @@ variant. The @exec{raco cross} command will download and install a
 version and variant of Racket for the current machine as needed.
 
 The Racket distributions that are downloaded and managed by @exec{raco
-cross} are installed in a @deftech{workspace} directory. By default,
-the workspace directory is @racket[(build-path (find-system-path
+cross} are installed in a @deftech{workspace} directory. A workspace
+directory is tied to a specific Racket version. By default, the
+workspace directory is @racket[(build-path (find-system-path
 'addon-dir) "raco-cross" _vers)] where @racket[_vers] is the specified
 version. The workspace directory is independent of the Racket
 installation that is used to run @exec{raco cross}.
@@ -222,14 +223,17 @@ The following @nonterm{options} are recognized:
  @item{@DFlag{version} @nonterm{vers} --- Selects the Racket version to
        use for the target machine.
 
-       The default version is based on the Racket version used to run
-       @exec{raco cross}, but if that version has a fourth
+       If @DFlag{workspace} is specified and the workspace directory
+       exists already, the default version is the workspace's version.
+       Otherwise, the default version is based on the Racket version
+       used to run @exec{raco cross}, but if that version has a fourth
        @litchar{.}-separated component, then it is dropped, and a
        third component is dropped if it is @litchar{0}.
 
        The version @exec{current} might be useful with a snapshot
        download site, but only with a fresh workspace directory each
-       time the snapshot site's @exec{current} build changes.}
+       time the snapshot site's @exec{current} build changes. See also
+       @secref["snapshots"].}
 
  @item{@DFlag{native} --- Specifies that the target platform runs
        natively on the current machine, so cross-compilation mode is
@@ -265,21 +269,36 @@ The following @nonterm{options} are recognized:
 
        The default workspace directory depends on the target version
        @nonterm{vers}: @racket[(build-path (find-system-path
-       'addon-dir) "raco-cross" @#,nonterm{vers})].}
+       'addon-dir) "raco-cross" @#,nonterm{vers})].
+
+       When a workspace directory is created, the requested (or
+       default) version is recorded with the workspace. Future uses of
+       the workspace default to that version, and an error will be
+       reported if the workspace is used with a different requested
+       version.}
 
   @item{@DFlag{installers} @nonterm{url} --- Specifies the site for
         downloading minimal Racket distributions. A @filepath{.tgz}
         file name is added to the end of @nonterm{url} for
         downloading.
 
-        The installers URL is needed only when a target configuration
-        is specified for the first time for a given workspace. The
-        name of the file to download is constructed based on the
+        The name of the file to download is constructed based on the
         version, target machine, and virtual-machine implementation,
         and that file name is added to the end of @nonterm{url}, but
         the file name can be overridden through @DFlag{archive}.
 
-        The default @nonterm{url} is @exec{https://download.racket-lang.org/installers/@nonterm{vers}/}.}
+        The installers URL is needed only when a target configuration
+        is specified for the first time for a given workspace.
+        Furthermore, when both @DFlag{installers} and
+        @DFlag{workspace} are specified, @nonterm{url} is recorded as
+        the default (overwriting any default that may already be
+        recorded) for future uses of the same workspace.
+
+        The default @nonterm{url} is
+        @exec{https://download.racket-lang.org/installers/@nonterm{vers}/}.
+        When @DFlag{workspace} is specified and an installers URL is
+        recorded in the workspace, that URL is used as the default,
+        instead.}
 
   @item{@DFlag{archive} @nonterm{filename} --- Overrides the archive
         to use when downloading for the target platform.}
@@ -357,7 +376,7 @@ The following @nonterm{options} are recognized:
 ]
 
 @; ----------------------------------------
-@section{Snapshots and @exec{raco cross}}
+@section[#:tag "snapshots"]{Snapshots and @exec{raco cross}}
 
 By default, @exec{raco cross} uses a @DFlag{version} argument to
 locate a suitable distribution from the main Racket download mirror.
@@ -369,7 +388,7 @@ reliably distinguish the build.
 Snapshot sites normally have a main page that provides links with
 ``current'' instead of the version number, and they also have
 build-specific pages (with a hash code and/or date in the URL) to
-provide the same links. The build-specific pages persist for a a few
+provide the same links. The build-specific pages persist for a few
 days or weeks, depending on the snapshot site, while the main page
 turns over more quickly.
 
@@ -389,6 +408,9 @@ write
   --workspace /tmp/todays-snapshot \
   racket
 }
+
+The version and installers URL are recorded with a workspace, so those
+only need to be specified the first time that the workspace is used.
 
 The Utah snapshot updates daily, so tomorrow, throw away
 @filepath{/tmp/todays-snapshot} and start again. If, instead, you need

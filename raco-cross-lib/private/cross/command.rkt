@@ -3,6 +3,7 @@
          raco/command-name
          racket/file
          "default.rkt"
+         "workspace.rkt"
          "platform.rkt"
          "native.rkt"
          "remove.rkt"
@@ -12,7 +13,7 @@
          "build.rkt"
          "browse.rkt")
 
-(define version (default-version))
+(define version #f)
 (define workspace-dir #f) ; default is derived from version
 (define installers-url #f) ; default is derived from version
 (define download-filename #f)
@@ -106,7 +107,28 @@
                               (if remove? "remove" "browse")
                               command))))
 
+ (define ws-version
+   (and workspace-dir
+        (workspace-version workspace-dir)))
+ 
+ (unless version
+   (set! version (or ws-version
+                     (default-version))))
+ (when (and ws-version
+            (not (equal? version ws-version)))
+   (raise-user-error (string-append
+                      (short-program+command-name)
+                      ": version mismatch for workspace\n"
+                      "  workspace: ~a"
+                      "  workspace version: ~a\n"
+                      "  requested version: ~a")
+                     workspace-dir
+                     ws-version
+                     version))
+
  (define installers (or installers-url
+                        (and workspace-dir
+                             (workspace-installers-url workspace-dir))
                         (default-installers-url version)))
 
  (when browse?
@@ -150,6 +172,7 @@
                     #:vm vm
                     #:compile-any? compile-any?
                     #:install-native? native?))
+ 
  (unless quiet?
    (printf ">> Cross configuration\n")
    (printf " Target:    ~a~a\n" target (cond
@@ -161,6 +184,9 @@
    (printf " VM:        ~a\n" vm)
    (printf " Workspace: ~a\n" workspace))
  (make-directory* workspace)
+ (record-workspace-version workspace version)
+ (when (and workspace-dir installers-url) 
+   (record-workspace-installers-url workspace-dir installers))
 
  (define (download #:platform platform
                    #:vm [vm vm]
