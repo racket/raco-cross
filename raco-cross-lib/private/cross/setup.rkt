@@ -47,7 +47,9 @@
                                #:source-dir source-dir
                                #:vm vm
                                (append
-                                '("-l-"
+                                '("-N"
+                                  "raco"
+                                  "-l-"
                                   "raco"
                                   "setup"
                                   "-D"

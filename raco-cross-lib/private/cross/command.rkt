@@ -249,17 +249,18 @@
                               #:skip-setup? skip-setup?))
         (run #:platform platform
              #:compile-any? compile-any?
-             '("-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
+             '("-N" "raco" "-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
         (run #:platform platform
              #:compile-any? compile-any?
-             `("-l-" "raco" "pkg" "config" "-i" "--set" "name" ,(format "~a-~a-~a"
-                                                                        version
-                                                                        platform
-                                                                        vm)))
+             `("-N" "raco" "-l-" "raco" "pkg" "config"
+                    "-i" "--set" "name" ,(format "~a-~a-~a"
+                                                 version
+                                                 platform
+                                                 vm)))
         (unless skip-pkgs?
           (run #:platform platform
                #:compile-any? compile-any?
-               (append '("-l-" "raco" "pkg" "install" "--auto" "--skip-installed")
+               (append '("-N" "raco" "-l-" "raco" "pkg" "install" "--auto" "--skip-installed")
                        (if jobs (list "-j" jobs) null)
                        '("compiler-lib"))))
         (make-directory* done-dir)
@@ -281,4 +282,4 @@
            #:compile-any? compile-any?
            (if (equal? command "racket")
                arg
-               (list* "-l-" "raco" command arg))))]))
+               (list* "-N" "raco" "-l-" "raco" command arg))))]))
