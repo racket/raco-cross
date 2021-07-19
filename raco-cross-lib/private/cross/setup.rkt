@@ -52,6 +52,7 @@
                                   "-l-"
                                   "raco"
                                   "setup"
+                                  "--no-user"
                                   "-D"
                                   "-x"
                                   "--no-pkg-deps")

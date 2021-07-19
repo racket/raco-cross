@@ -275,10 +275,10 @@
                               #:skip-setup? skip-setup?))
         (run #:platform platform
              #:compile-any? compile-any?
-             '("-N" "raco" "-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
+             '("-N" "raco" "-U" "-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
         (run #:platform platform
              #:compile-any? compile-any?
-             `("-N" "raco" "-l-" "raco" "pkg" "config"
+             `("-N" "raco" "-U" "-l-" "raco" "pkg" "config"
                     "-i" "--set" "name" ,(format "~a-~a-~a"
                                                  version
                                                  platform
