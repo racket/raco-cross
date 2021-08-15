@@ -18,7 +18,7 @@ is licensed under the [Apache 2.0] license and the [MIT] license.
 
 [MIT]: https://github.com/racket/racket/blob/master/racket/src/LICENSE-MIT.txt
 [Apache 2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
-[pull request]: https://github.com/racket/scribble/pulls
-[issue]: https://github.com/racket/scribble/issues
+[pull request]: https://github.com/racket/raco-cross/pulls
+[issue]: https://github.com/racket/raco-cross/issues
 [development mailing list]: https://lists.racket-lang.org
 [LICENSE]: LICENSE
