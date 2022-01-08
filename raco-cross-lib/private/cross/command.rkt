@@ -118,13 +118,15 @@
             (not (equal? version ws-version)))
    (raise-user-error (string-append
                       (short-program+command-name)
-                      ": version mismatch for workspace\n"
-                      "  workspace: ~a"
-                      "  workspace version: ~a\n"
-                      "  requested version: ~a")
-                     workspace-dir
-                     ws-version
-                     version))
+                      (format
+                       (string-append
+                        ": version mismatch for workspace\n"
+                        "  workspace: ~a\n"
+                        "  workspace version: ~a\n"
+                        "  requested version: ~a")
+                       workspace-dir
+                       ws-version
+                       version))))
 
  (define installers (or installers-url
                         (and workspace-dir
