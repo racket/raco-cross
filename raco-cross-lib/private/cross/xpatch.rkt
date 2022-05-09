@@ -50,25 +50,63 @@
 
     ;; ----------------------------------------
     ;; Extract relevant sources from makefiles
-    
-    (define mf-base (let ([s (file->string (build-path dir "s" "Mf-base"))])
-                      (string-append "\n" (regexp-replace* "\\\\\n" s ""))))
-    (define Makefile.in (let* ([s (file->string (build-path src-dir "src" "cs" "c" "Makefile.in"))]
-                               [s (regexp-replace* "\\\\\n" s "")]
-                               [s (regexp-replace* "[$][(]([A-Za-z_]+)[)]" s "\\1")])
-                          (string-append "\n" s)))
 
-    (define (get-srcs id mkfile #:suffix [suffix #".ss"])
+    (define (read-zuo build.zuo)
+      (and (file-exists? build.zuo)
+           (call-with-input-file*
+            build.zuo
+            #:mode 'text
+            (lambda (i)
+              (unless (equal? (read-line i) "#lang zuo")
+                (error "expected `#lang zuo`from build.zuo"))
+              (let loop ()
+                (define v (read i))
+                (if (eof-object? v)
+                    null
+                    (cons v (loop))))))))
+    (define s/build.zuo
+      (read-zuo (build-path dir "s" "build.zuo")))
+    (define cs/c/build.zuo
+      (read-zuo (build-path src-dir "src" "cs" "c" "build.zuo")))
+    
+    (define mf-base (and (not s/build.zuo)
+                         (let ([s (file->string (build-path dir "s" "Mf-base"))])
+                           (string-append "\n" (regexp-replace* "\\\\\n" s "")))))
+    (define Makefile.in (and (not cs/c/build.zuo)
+                             (let* ([s (file->string (build-path src-dir "src" "cs" "c" "Makefile.in"))]
+                                    [s (regexp-replace* "\\\\\n" s "")]
+                                    [s (regexp-replace* "[$][(]([A-Za-z_]+)[)]" s "\\1")])
+                               (string-append "\n" s))))
+
+    (define (get-zuo-sources name content #:suffix [suffix #".ss"])
+      (or (for/or ([e (in-list content)])
+            (and (list? e)
+                 (= 3 (length e))
+                 (eq? 'define (car e))
+                 (eq? name (cadr e))
+                 (let ([rhs (caddr e)])
+                   (and (list? rhs)
+                        (eq? 'list (car rhs))
+                        (map (lambda (p) (path->string (path-replace-suffix p suffix))) (cdr rhs))))))
+          (error "not found:" name)))
+
+    (define (get-makefile-srcs id mkfile #:suffix [suffix #".ss"])
       (let ([m (regexp-match (format "\n~a *= *([^\n]*)" id) mkfile)])
         (unless m (error 'xpatch "could not find `~a`" id))
         (for/list ([sym (in-list (read (open-input-string (string-append "(" (cadr m) ")"))))])
           (path->string (path-replace-suffix (symbol->string sym) suffix)))))
 
-    (define macro-srcs (get-srcs 'macroobj mf-base))
-    (define compile-srcs (get-srcs 'patchobj mf-base))
-    (define library-srcs (get-srcs 'RACKET_XPATCH Makefile.in #:suffix #".sls"))
+    (define macro-srcs (if s/build.zuo
+                           (get-zuo-sources 'macro-src-names s/build.zuo)
+                           (get-makefile-srcs 'macroobj mf-base)))
+    (define compile-srcs (if s/build.zuo
+                             (get-zuo-sources 'patch-names s/build.zuo)
+                             (get-makefile-srcs 'patchobj mf-base)))
+    (define library-srcs (if cs/c/build.zuo
+                             (get-zuo-sources 'library-xpatch-names cs/c/build.zuo #:suffix #".sls")
+                             (get-makefile-srcs 'RACKET_XPATCH Makefile.in #:suffix #".sls")))
 
-    ;; Instantiate "machine.def" in the Chez Scheme course area, like `configure`
+    ;; Instantiate "machine.def" in the Chez Scheme source area, like `configure`
     ;; or `workarea` would do in a normal build
     (cond
       [(file-exists? (build-path dir "s" (format "~a.def" machine)))
@@ -87,7 +125,16 @@
                (define l (read-line i))
                (unless (eof-object? l)
                  (displayln (let* ([l (regexp-replace* #rx"[$][(]M[)]" l machine)]
-                                   [l (regexp-replace* #rx"[$][(]March[)]" l arch)])
+                                   [l (regexp-replace* #rx"[$][(]March[)]" l arch)]
+                                   [l (regexp-replace* #rx"[$][(]Mtimet[)]" l
+                                                       (cond
+                                                         [(regexp-match? #rx"(nb|ob)$" machine)
+                                                          "64"]
+                                                         [(or (string=? arch "i3")
+                                                              (string=? arch "ppc32")
+                                                              (string=? arch "arm32"))
+                                                          "32"]
+                                                         [else "64"]))])
                               l)
                             o)
                  (loop)))))))])
@@ -235,12 +282,16 @@
          (writeln `(define (serve-cross-compile machine)
                      (void))
                   o)
-         (writeln `(command-line-arguments (list "--unsafe"
-                                                 "--xpatch"
-                                                 "../ChezScheme/xpatch"
-                                                 ,src
-                                                 ,@(for/list ([dep (in-list deps)])
-                                                     (path->string (path-replace-suffix dep host-suffix)))))
+         (writeln `(command-line-arguments
+                    (list ,@(append (list "--unsafe"
+                                          "--xpatch"
+                                          "../ChezScheme/xpatch"
+                                          src)
+                                    (if s/build.zuo
+                                        (list (path->string (path-replace-suffix src ".so")))
+                                        null)
+                                    (for/list ([dep (in-list deps)])
+                                      (path->string (path-replace-suffix dep host-suffix))))))
                   o)
          (writeln `(printf "compiling ~s\n" ,src)
                   o))))
