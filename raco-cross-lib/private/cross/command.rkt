@@ -311,3 +311,5 @@
            (if (equal? command "racket")
                arg
                (list* "-N" "raco" "-l-" "raco" command arg))))]))
+
+(module test racket/base)
