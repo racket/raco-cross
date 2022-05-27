@@ -1,6 +1,6 @@
 # raco cross
 
-This the source for the Racket packages "raco-cross", "raco-cross-doc", and "raco-cross-lib".
+This the source for the [Racket packages](https://docs.racket-lang.org/raco-cross/index.html) "raco-cross", "raco-cross-doc", and "raco-cross-lib".
 
 ### Contributing
 
