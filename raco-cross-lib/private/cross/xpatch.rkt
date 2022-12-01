@@ -192,6 +192,7 @@
 
          ;; compiling in unsafe mode:
          (optimize-level 3)
+         (debug-level 0)
 
          ,@(let ()
              (define (compile-one s
