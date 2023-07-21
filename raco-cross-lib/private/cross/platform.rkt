@@ -45,6 +45,7 @@
                         [("aarch64" "arm64") "arm64"]
                         [("arm32" "aarch32") "arm32"]
                         [("ppc" "ppc32" "powerpc" "powerpc32") "ppc32"]
+                        [("riscv64") "rv64"]
                         [else (fail)])
                       ;; canonical name is first in each case
                       (case (caddr m)
@@ -69,6 +70,7 @@
                            [("arm64") "aarch64"]
                            [("arm32") "arm32"]
                            [("ppc32") "ppc"]
+                           [("rv64") "riscv64"]
                            [else "oops"])
                          "-"
                          (case (caddr m)
