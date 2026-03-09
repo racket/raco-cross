@@ -43,7 +43,7 @@
                         [("x86_64" "amd64") "a6"]
                         [("i386" "x86") "i3"]
                         [("aarch64" "arm64") "arm64"]
-                        [("arm32" "aarch32") "arm32"]
+                        [("arm32" "aarch32" "arm") "arm32"]
                         [("ppc" "ppc32" "powerpc" "powerpc32") "ppc32"]
                         [("riscv64") "rv64"]
                         [else (fail)])
@@ -68,7 +68,7 @@
                            [("a6") "x86_64"]
                            [("i3") "i386"]
                            [("arm64") "aarch64"]
-                           [("arm32") "arm32"]
+                           [("arm32") "arm"]
                            [("ppc32") "ppc"]
                            [("rv64") "riscv64"]
                            [else "oops"])
