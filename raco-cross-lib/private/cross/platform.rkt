@@ -35,7 +35,7 @@
                           "unrecognized platform: "
                           platform)
         (error 'cross "unrecognized platform: ~s" platform)))
-  (define m (regexp-match #rx"^([^-]+)-([^-]+)$" platform))
+  (define m (regexp-match #rx"^([^-]+)-([^-]+)(?:-.*)?$" platform)) ; allow "-natipkg" suffix and similar
   (cond
     [m (string-append "t"
                       ;; canonical name is first in each case
