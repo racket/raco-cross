@@ -8,3 +8,5 @@
                          #f)))
 
 (define deps '("base"))
+
+(define version "1.1")

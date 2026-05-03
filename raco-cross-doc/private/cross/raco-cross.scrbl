@@ -151,7 +151,7 @@ needed only the first time. If the host distribution is already
 installed, it must be installed as a native distribution.
 
 @; ----------------------------------------
-@section{Running @exec{raco cross}}
+@section[#:tag "running"]{Running @exec{raco cross}}
 
 The general form to run @exec{raco cross} is
 @;
@@ -465,3 +465,45 @@ building form source. To build your own:
        with the name of the @filepath{.tgz} file in that directory.}
 
 ]
+
+@; ----------------------------------------
+@section[#:tag "api"]{Library API}
+
+@defmodule[setup/raco-cross]{
+
+The @racketmodname[setup/raco-cross] module provides the same
+functionality as @exec{raco cross} at a command line, but as a Racket
+procedure.}
+
+@history[#:added "1.1"]
+
+@defproc[(raco-cross [#:version version (or/c string? #f) #f]
+                     [#:workspace-dir workspace-dir (or/c string? #f) #f]
+                     [#:installers-url installers-url (or/c string? #f) #f]
+                     [#:archive archive (or/c string? #f) #f]
+                     [#:vm vm (or/c string? #f) #f]
+                     [#:base-name base-name string? "racket-minimal"]
+                     [#:host host (or/c string? #f) #f]
+                     [#:target target (or/c string? #f) #f]
+                     [#:native? native? (or/c string? #f) #f]
+                     [#:skip-setup? skip-setup? (or/c string? #f) #f]
+                     [#:skip-pkgs? skip-pkgs? (or/c string? #f) #f]
+                     [#:jobs jobs (or/c string? #f) #f]
+                     [#:compile-any? compile-any? (or/c string? #f) #f]
+                     [#:use-source? use-source? (or/c string? #f) #f]
+                     [#:configure-args configure-args (listof string?) '()]
+                     [#:addon-dir addon-dir (or/c string? #f) #f]
+                     [#:quiet? quiet? (or/c string? #f) #f]
+                     [#:remove? remove? (or/c string? #f) #f]
+                     [#:browse? browse? (or/c string? #f) #f]
+                     [#:command command (or/c string? #f) #f]
+                     [arg string?]
+                     ...)
+         void?]{
+
+ The arguments correspond to @exec{raco exe} arguments (see
+ @secref["running"]), except that @racket["any"] is not supported for
+ @racket[target] (so provide @racket[compile-any?] as @racket[#true],
+ instead).
+
+}
