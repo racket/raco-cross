@@ -7,10 +7,12 @@
 
 (define (remove-distribution #:workspace workspace-dir
                              #:platform platform
+                             #:identity [identity #f]
                              #:vm [vm (default-vm)]
                              #:compile-any? [compile-any? #f]
                              #:version [vers (default-version)])
-  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
+  (define platform+vm (or identity
+                          (platform+vm->path platform vm #:compile-any? compile-any?)))
   (define dest-dir (build-path workspace-dir platform+vm))
 
   (define (xpatch-file mode)

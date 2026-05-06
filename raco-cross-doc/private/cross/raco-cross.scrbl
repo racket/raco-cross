@@ -83,8 +83,11 @@ The @exec{raco cross} command takes care of the following tasks:
        packages in @exec{installation} scope by default.}
 
  @item{Configures the minimal Racket installation's name to a
-       combination of the version, platform name, and virtual machine
-       (instead of just the version).}
+       combination of the version, platform name, virtual machine,
+       and whether @DFlag{compile-any} is specified
+       (instead of just the Racket version). If an instance
+       name is specified with @DFlag{instance}, that name is used,
+       instead.}
 
  @item{Configures the minimal Racket installation to compile to
        machine-independent form if @DFlag{compile-any} is specified or
@@ -117,6 +120,15 @@ workspace directory is @racket[(build-path (find-system-path
 'addon-dir) "raco-cross" _vers)] where @racket[_vers] is the specified
 version. The workspace directory is independent of the Racket
 installation that is used to run @exec{raco cross}.
+
+With a workspace, each target gets its own @deftech{instance}. More
+precisely, when @exec{raco cross} runs for a given target, a default
+instance name is computed as the normalized target name, the virtual
+machine variant, and a @litchar{-mi} suffix in the case of
+@DFlag{compile-any}. A specific instance can be selected using the
+@DFlag{instance} flag. Installation operations on an instance within a
+workspace, such as installing a package, persist across uses of the
+instance.
 
 When building for a given target, often packages need to be installed
 via @exec{raco cross} only for that target. In some cases, however,
@@ -181,10 +193,10 @@ The following @nonterm{options} are recognized:
         @itemlist[
 
           @item{The concatenation of the string form of the symbols
-                returned by @racket[(system-type 'arch)] and @racket[(system-type 'os)]
+                returned by @racket[(system-type 'arch)] and @racket[(system-type 'os*)]
                 on the target platform, with a @racket["-"] in between.
                 Some common alternative spellings of the @racket[(system-type 'arch)]
-                and @racket[(system-type 'os)] results are also recognized.
+                and @racket[(system-type 'os*)] results are also recognized.
 
                 Examples: @exec{i386-win32}, @exec{aarch64-macosx}, @exec{ppc-linux}}
 
@@ -265,7 +277,7 @@ The following @nonterm{options} are recognized:
        @exec{raco make} to create machine-independent bytecode.}
 
  @item{@DFlag{workspace} @nonterm{dir} --- Uses @nonterm{dir} as the
-       workspace directory.
+       @tech{workspace} directory.
 
        The default workspace directory depends on the target version
        @nonterm{vers}: @racket[(build-path (find-system-path
@@ -277,6 +289,12 @@ The following @nonterm{options} are recognized:
        reported if the workspace is used with a different requested
        version.}
 
+ @item{@DFlag{instance} @nonterm{name} --- Uses @nonterm{name} as the
+       @tech{instance} within the workspace. The default instance name is
+       a normalization of the target configuration.
+
+       @history[#:added "1.1"]}
+
   @item{@DFlag{installers} @nonterm{url} --- Specifies the site for
         downloading minimal Racket distributions. A @filepath{.tgz}
         file name is added to the end of @nonterm{url} for
@@ -287,8 +305,9 @@ The following @nonterm{options} are recognized:
         and that file name is added to the end of @nonterm{url}, but
         the file name can be overridden through @DFlag{archive}.
 
-        The installers URL is needed only when a target configuration
-        is specified for the first time for a given workspace.
+        The installers URL is needed only when an @tech{instance}
+        (normally based on the target configuration)
+        is used for the first time for a given @tech{workspace}.
         Furthermore, when both @DFlag{installers} and
         @DFlag{workspace} are specified, @nonterm{url} is recorded as
         the default (overwriting any default that may already be
@@ -302,6 +321,16 @@ The following @nonterm{options} are recognized:
 
   @item{@DFlag{archive} @nonterm{filename} --- Overrides the archive
         to use when downloading for the target platform.}
+
+  @item{@DFlag{download-cache} @nonterm{dir} --- Caches downloaded
+        distribution archives in @nonterm{dir}.
+
+        Beware that @exec{raco cross} never deletes entries from this
+        cache, but any file in the cache can be deleted when
+        @exec{raco cross} is not reading @nonterm{dir}. Each cache
+        directory should be used with only one installers site.
+
+        @history[#:added "1.1"]}
 
   @item{@DFlag{skip-pkgs} --- Disables installation of the
         @filepath{compiler-lib} package when installing a new
@@ -327,7 +356,7 @@ The following @nonterm{options} are recognized:
         new distribution, including the initial package install if
         @DFlag{skip-pkgs} is not specified.}
 
-  @item{@DFlag{use-source} --- Build a host installation from source.
+  @item{@DFlag{use-source} --- Builds a host installation from source.
 
         When a host installation is not already available for the
         target version and virtual machine, build it from a Racket
@@ -352,10 +381,11 @@ The following @nonterm{options} are recognized:
         print as @exec{raco cross} starts.}
 
   @item{@DFlag{remove} --- Removes any existing installation in the
-        workspace for the target configuration.
+        workspace for the @tech{instance}.
 
         Beware that any directory in the user's ``addon'' space that
-        is specific to the installation (initially configured as a
+        is specific to the installation (initially configured as the
+        instance name, which defaults to a
         combination of the version, platform, and virtual machine) is
         @emph{not} removed. The location of that directory is
         typically within @racket[(find-system-path 'addon-dir)].
@@ -485,6 +515,7 @@ procedure.}
                      [#:base-name base-name string? "racket-minimal"]
                      [#:host host (or/c string? #f) #f]
                      [#:target target (or/c string? #f) #f]
+                     [#:instance instance (or/c string? #f) #f]
                      [#:native? native? (or/c string? #f) #f]
                      [#:skip-setup? skip-setup? (or/c string? #f) #f]
                      [#:skip-pkgs? skip-pkgs? (or/c string? #f) #f]
@@ -493,6 +524,7 @@ procedure.}
                      [#:use-source? use-source? (or/c string? #f) #f]
                      [#:configure-args configure-args (listof string?) '()]
                      [#:addon-dir addon-dir (or/c string? #f) #f]
+                     [#:download-cache-dir download-cache-dir (or/c path-string? #f) #f]
                      [#:quiet? quiet? (or/c string? #f) #f]
                      [#:remove? remove? (or/c string? #f) #f]
                      [#:browse? browse? (or/c string? #f) #f]

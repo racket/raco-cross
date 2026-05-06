@@ -22,6 +22,7 @@
                     #:base-name [base-name "racket-minimal"]
                     #:host [host #f]
                     #:target [target #f]
+                    #:instance [identity #f]
                     #:native? [native? #f]
                     #:skip-setup? [skip-setup? #f]
                     #:skip-pkgs? [skip-pkgs? #f]
@@ -30,6 +31,7 @@
                     #:use-source? [use-source? #f]
                     #:configure-args [configure-args '()]
                     #:addon-dir [addon-dir #f]
+                    #:download-cache-dir [download-cache-dir #f]
                     #:quiet? [quiet? #f]
                     #:remove? [remove? #f]
                     #:browse? [browse? #f]
@@ -95,6 +97,8 @@
                    (default-host-platform))))
   (unless target
     (set! target host))
+  (set! host (normalize-platform host))
+  (set! target (normalize-platform target))
   (unless (will-be-native? #:workspace workspace
                            #:platform host
                            #:host-platform #f
@@ -123,7 +127,9 @@
     (printf " Host:      ~a\n" host)
     (printf " Version:   ~a\n" version)
     (printf " VM:        ~a\n" vm)
-    (printf " Workspace: ~a\n" workspace))
+    (printf " Workspace: ~a\n" workspace)
+    (when identity
+      (printf " Identity:  ~a\n" identity)))
   (make-directory* workspace)
   (record-workspace-version workspace version)
   (when (and workspace-dir installers-url)
@@ -132,11 +138,13 @@
   (define (download #:platform platform
                     #:vm [vm vm]
                     #:compile-any? [compile-any? #f]
+                    #:identity [identity #f]
                     #:native? [native? #f]
                     #:zo-dir [zo-dir #f]
                     #:filename [filename #f])
     (download-distribution #:workspace workspace
                            #:platform platform
+                           #:identity identity
                            #:vm vm
                            #:compile-any? compile-any?
                            #:version version
@@ -145,14 +153,17 @@
                            #:filename filename
                            #:native? native?
                            #:host host
-                           #:zo-dir zo-dir))
+                           #:zo-dir zo-dir
+                           #:download-cache-dir download-cache-dir))
   (define (run args
                #:platform platform
+               #:identity identity
                #:compile-any? compile-any?)
     (apply run-cross-racket
            #:workspace workspace
            #:platform platform
            #:host-platform host
+           #:identity identity
            #:vm vm
            #:compile-any? compile-any?
            #:host-dir (build-path workspace (platform+vm->path host vm))
@@ -166,6 +177,7 @@
     [remove?
      (remove-distribution #:workspace workspace
                           #:platform target
+                          #:identity identity
                           #:vm vm
                           #:compile-any? compile-any?
                           #:version version)]
@@ -191,10 +203,12 @@
                    #:configure configure-args))
 
      (define (download-and-setup #:platform platform
+                                 #:identity [identity #f]
                                  #:native? native?
                                  #:compile-any? [compile-any? #f]
                                  #:filename [filename #f])
        (download #:platform platform
+                 #:identity identity
                  #:native? native?
                  #:filename filename
                  #:compile-any? compile-any?
@@ -202,7 +216,8 @@
                                (or (eq? vm 'cs) compile-any?)
                                (build-path workspace (platform+vm->path (source-platform) #f))))
        (define done-dir (build-path workspace
-                                    (platform+vm->path platform vm #:compile-any? compile-any?)
+                                    (or identity
+                                        (platform+vm->path platform vm #:compile-any? compile-any?))
                                     "build"))
        (define done-file (build-path done-dir "setup-done"))
        (unless (file-exists? done-file)
@@ -210,23 +225,28 @@
            (setup-distribution #:workspace workspace
                                #:platform platform
                                #:host-platform host
+                               #:identity identity
                                #:vm vm
                                #:compile-any? compile-any?
                                #:jobs jobs
                                #:skip-setup? skip-setup?))
          (run #:platform platform
+              #:identity identity
               #:compile-any? compile-any?
               '("-N" "raco" "-U" "-l-" "raco" "pkg" "config" "-i" "--set" "default-scope" "installation"))
          (run #:platform platform
+              #:identity identity
               #:compile-any? compile-any?
               `("-N" "raco" "-U" "-l-" "raco" "pkg" "config"
-                     "-i" "--set" "name" ,(format "~a-~a-~a~a"
-                                                  version
-                                                  platform
-                                                  vm
-                                                  (if compile-any? "-mi" ""))))
+                     "-i" "--set" "name" ,(or identity
+                                              (format "~a-~a-~a~a"
+                                                      version
+                                                      platform
+                                                      vm
+                                                      (if compile-any? "-mi" "")))))
          (unless skip-pkgs?
            (run #:platform platform
+                #:identity identity
                 #:compile-any? compile-any?
                 (append '("-N" "raco" "-l-" "raco" "pkg" "install" "--auto" "--skip-installed")
                         (if jobs (list "-j" jobs) null)
@@ -241,12 +261,14 @@
 
      ;; Prepare distribution for target platform:
      (download-and-setup #:platform target
+                         #:identity identity
                          #:compile-any? compile-any?
                          #:filename download-filename
                          #:native? target-will-be-native?)
 
      (when command
        (run #:platform target
+            #:identity identity
             #:compile-any? compile-any?
             (append
              (if addon-dir

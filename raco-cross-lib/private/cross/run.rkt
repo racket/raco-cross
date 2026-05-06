@@ -21,10 +21,12 @@
                                                                (platform+vm->path
                                                                 (source-platform)
                                                                 #f))]
+                          #:identity [identity #f]
                           #:on-fail [on-fail (lambda ()
                                                (error "command failed"))]
                           . args)
-  (define platform+vm (platform+vm->path platform vm #:compile-any? compile-any?))
+  (define platform+vm (or identity
+                          (platform+vm->path platform vm #:compile-any? compile-any?)))
   (define target-dir (build-path workspace-dir platform+vm))
 
   (define machine (and (not compile-any?) (platform->machine platform)))

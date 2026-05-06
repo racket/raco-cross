@@ -57,11 +57,13 @@
                         [("netbsd") "nb"]
                         [("solaris") "s2"]
                         [else "fail"]))]
+    [(equal? platform "source:") platform]
     [else (fail)]))
 
 (define (normalize-platform platform
                             #:complain-as [complain-as #f])
   (cond
+    [(equal? platform "source") platform]
     [(regexp-match #rx"^t?(a6|i3|arm32|arm64|ppc32)(osx|nt|le|fb|nb|ob|s2)$" platform)
      => (lambda (m)
           (string-append (case (cadr m)

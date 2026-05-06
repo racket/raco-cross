@@ -10,10 +10,12 @@
 (define workspace-dir #f) ; default is derived from version
 (define installers-url #f) ; default is derived from version
 (define download-filename #f)
+(define download-cache-dir #f)
 (define vm #f)
 (define base-name "racket-minimal")
 (define host #f)
 (define target #f)
+(define ident #f)
 (define native? #f)
 (define skip-setup? #f)
 (define skip-pkgs? #f)
@@ -54,6 +56,9 @@
                              (string-append (short-program+command-name)
                                             ": unrecognized variant: "
                                             variant))]))]
+ [("--instance") name
+                 "use <name> for instance instead of normalized <target>"
+                 (set! ident name)]
  [("--compile-any" "-M") "cross-build to machine-independent compilation"
                          (set! compile-any? #t)]
  [("--native") "install target platform as native to this host"
@@ -67,6 +72,9 @@
  [("--archive") name
                 "download distribution as <name> (normally ends \".tgz\")"
                 (set! download-filename name)]
+ [("--download-cache") dir
+                       "cache downloaded distribution archives in <dir>"
+                       (set! download-cache-dir dir)]
  [("--skip-setup") "skip the `raco setup` step of an installation"
                   (set! skip-setup? #t)]
  [("--skip-pkgs") "skip installing the \"compiler-lib\" package"
@@ -94,7 +102,9 @@
         #:workspace-dir workspace-dir
         #:installers-url installers-url
         #:archive download-filename
+        #:download-cache-dir download-cache-dir
         #:vm vm
+        #:instance ident
         #:base-name base-name
         #:host host
         #:target target
